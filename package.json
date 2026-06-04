@@ -1,0 +1,15 @@
+{
+  "name": "zoho-projects-mcp",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "setup": "node src/setup-auth.js",
+    "team-tasks": "node scripts/my-open-tasks.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "dotenv": "^16.0.0",
+    "zod": "^3.0.0"
+  }
+}

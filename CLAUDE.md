@@ -1,0 +1,49 @@
+# CLAUDE.md
+
+Este archivo proporciona orientación a Claude Code (claude.ai/code) cuando trabaja con el código de este repositorio.
+
+## Propósito del Proyecto
+
+Servidor MCP (Model Context Protocol) que conecta Zoho Projects con Claude AI. Expone operaciones de Zoho Projects como herramientas MCP invocables por Claude, permitiendo gestión de proyectos/tareas, seguimiento de tiempo y manejo de comentarios a través de una interfaz MCP basada en stdio.
+
+## Comandos
+
+```bash
+npm run setup       # Autenticación OAuth2 inicial — abre el navegador, inicia servidor de callback en localhost:8080, guarda tokens.json
+npm start           # Inicia el servidor MCP (transporte stdio)
+npm run team-tasks  # Lista tareas abiertas de los miembros del equipo (emails hardcodeados)
+```
+
+No hay paso de compilación ni pruebas — el proyecto corre directamente como módulos ES.
+
+## Arquitectura
+
+Tres archivos fuente con separación clara de responsabilidades:
+
+- **`src/server.js`** — Punto de entrada del servidor MCP. Registra las 10 herramientas con esquemas de parámetros Zod y delega cada una a `zohoClient`. La variable de entorno `ZOHO_PORTAL_NAME` (por defecto: `sigobproyectos`) define el portal en todas las rutas de la API.
+- **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/restapi`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/x-www-form-urlencoded`.
+- **`src/setup-auth.js`** — Configuración OAuth2 de una sola vez: abre la URL de autorización, recibe el código via servidor HTTP local en el puerto 8080, lo intercambia por tokens y escribe `tokens.json`.
+
+`scripts/my-open-tasks.js` es una utilidad independiente (no forma parte del servidor MCP) con emails del equipo SIGOB hardcodeados para consultar tareas abiertas entre proyectos.
+
+## Autenticación y Configuración
+
+`.env` contiene:
+- `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET` — credenciales OAuth de la app Zoho
+- `ZOHO_PORTAL_NAME` — nombre del portal (por defecto: `sigobproyectos`)
+- `ZOHO_MY_USER_ID` — ID numérico del usuario por defecto para asignación automática en `create_task` (obtenerlo con `list_users` en cualquier proyecto)
+
+`tokens.json` (generado por `npm run setup`) almacena los tokens OAuth activos incluyendo el refresh token. Ambos archivos están en `.gitignore` y son requeridos en tiempo de ejecución.
+
+El refresco de tokens es transparente: `zoho-client.js` reintenta cualquier 401 automáticamente con un token de acceso nuevo y luego persiste el nuevo token en disco.
+
+## Herramientas MCP Expuestas
+
+`list_projects`, `list_tasks`, `get_task`, `create_task`, `update_task`, `list_comments`, `add_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+
+### Creación rápida de tareas (`create_task`)
+
+- `project_id` acepta nombre o ID numérico (ej: `"sigob-sir-lite"` o `"123456"`)
+- Si no se especifica `person_responsible`, se asigna automáticamente el usuario en `ZOHO_MY_USER_ID`
+- Campos disponibles: `name`, `description`, `priority`, `start_date`, `due_date`, `estimated_hours` (decimal, ej: `"8"` o `"1.5"`), `tasklist_id`, `custom_fields`
+- Para campos personalizados (área técnica, tamaño, etc.), usar `list_task_fields` para obtener los `column_name` correspondientes y pasarlos en `custom_fields` como `{"UDF_CHAR1": "valor"}`
