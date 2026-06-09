@@ -12,6 +12,7 @@ Servidor MCP (Model Context Protocol) que conecta Zoho Projects con Claude AI. E
 npm run setup       # Autenticación OAuth2 inicial — abre el navegador, inicia servidor de callback en localhost:8080, guarda tokens.json
 npm start           # Inicia el servidor MCP (transporte stdio)
 npm run team-tasks  # Lista tareas abiertas de los miembros del equipo (emails hardcodeados)
+npm run my-mentions # Lista menciones al usuario en comentarios (todos los proyectos o uno específico)
 ```
 
 No hay paso de compilación ni pruebas — el proyecto corre directamente como módulos ES.
@@ -24,7 +25,24 @@ Tres archivos fuente con separación clara de responsabilidades:
 - **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/restapi`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/x-www-form-urlencoded`.
 - **`src/setup-auth.js`** — Configuración OAuth2 de una sola vez: abre la URL de autorización, recibe el código via servidor HTTP local en el puerto 8080, lo intercambia por tokens y escribe `tokens.json`.
 
-`scripts/my-open-tasks.js` es una utilidad independiente (no forma parte del servidor MCP) con emails del equipo SIGOB hardcodeados para consultar tareas abiertas entre proyectos.
+### Scripts utilitarios (`scripts/`)
+
+Utilidades independientes que no forman parte del servidor MCP. Todas usan `zohoClient` directamente y requieren `.env`.
+
+**`scripts/my-open-tasks.js`** — `npm run team-tasks`
+Lista todas las tareas abiertas asignadas a miembros del equipo SIGOB en todos los proyectos del portal. Los emails y fragmentos de nombre del equipo están hardcodeados en el archivo.
+
+**`scripts/my-mentions.js`** — `npm run my-mentions`
+Lista todos los comentarios donde se menciona al usuario (`ZOHO_MY_USER_ID`). Detecta menciones en formato Zoho (`[~ID]`) y opcionalmente por nombre (`ZOHO_MY_NAME`). Soporta filtro por rango de fechas.
+
+```bash
+npm run my-mentions                                        # todos los proyectos
+npm run my-mentions -- "sigob-sir-lite"                   # un proyecto específico
+npm run my-mentions -- --from=2026-05-01 --to=2026-06-09 # con rango de fechas
+npm run my-mentions -- "sigob-sir-lite" --from=2026-06-01
+```
+
+Variable de entorno opcional: `ZOHO_MY_NAME` — si se define (ej: `"Francisco Gomez"`), amplía la detección de menciones por nombre además de por ID.
 
 ## Autenticación y Configuración
 

@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node src/server.js",
     "setup": "node src/setup-auth.js",
-    "team-tasks": "node scripts/my-open-tasks.js"
+    "team-tasks": "node scripts/my-open-tasks.js",
+    "my-mentions": "node scripts/my-mentions.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
