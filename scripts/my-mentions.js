@@ -63,12 +63,31 @@ async function getAllTasks(projectId) {
   return tasks;
 }
 
-async function getComments(projectId, taskId) {
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function getComments(projectId, taskId, attempt = 0) {
   try {
     const r = await zohoClient.get(
       `/portal/${PORTAL}/projects/${projectId}/tasks/${taskId}/comments/`
     );
+    if (r?.error?.title === "URL_ROLLING_THROTTLES_LIMIT_EXCEEDED") {
+      if (attempt >= 2) return [];
+      process.stderr.write(`\n  ⏳ Rate limit alcanzado, esperando 65s...\n`);
+      await sleep(65000);
+      return getComments(projectId, taskId, attempt + 1);
+    }
     return r.comments || [];
+  } catch {
+    return [];
+  }
+}
+
+async function getSubtasks(projectId, taskId) {
+  try {
+    const r = await zohoClient.get(
+      `/portal/${PORTAL}/projects/${projectId}/tasks/${taskId}/subtasks/`
+    );
+    return r.tasks || [];
   } catch {
     return [];
   }
@@ -129,11 +148,20 @@ async function scanProject(project) {
   if (!tasks.length) return [];
 
   const jobs = tasks.map(task => async () => {
-    const comments = await getComments(project.id, task.id_string);
-    return { task, comments };
+    const [comments, subtasks] = await Promise.all([
+      getComments(project.id, task.id_string),
+      getSubtasks(project.id, task.id_string),
+    ]);
+    const subtaskResults = await Promise.all(
+      subtasks.map(async sub => ({
+        task: { ...sub, name: `${task.name} › ${sub.name}` },
+        comments: await getComments(project.id, sub.id_string),
+      }))
+    );
+    return [{ task, comments }, ...subtaskResults];
   });
 
-  const taskResults = await pLimit(jobs, 5);
+  const taskResults = (await pLimit(jobs, 3)).flat();
   const mentions = [];
 
   for (const { task, comments } of taskResults) {
@@ -169,8 +197,7 @@ async function main() {
     console.log(`Escaneando ${projects.length} proyecto(s):\n`);
   }
 
-  // Scan projects one by one to avoid rate-limiting at project level;
-  // within each project, tasks run with concurrency 5.
+  // Scan projects one by one; within each project tasks run with concurrency 3.
   const allMentions = [];
   for (const project of projects) {
     const mentions = await scanProject(project);
