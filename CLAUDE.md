@@ -50,6 +50,9 @@ Variable de entorno opcional: `ZOHO_MY_NAME` — si se define (ej: `"Francisco G
 - `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET` — credenciales OAuth de la app Zoho
 - `ZOHO_PORTAL_NAME` — nombre del portal (por defecto: `sigobproyectos`)
 - `ZOHO_MY_USER_ID` — ID numérico del usuario por defecto para asignación automática en `create_task` (obtenerlo con `list_users` en cualquier proyecto)
+- `ZOHO_MY_NAME` — nombre completo del usuario (opcional); usado por `my-mentions` para detectar menciones por nombre
+- `ZOHO_TEAM_EMAILS` — emails del equipo separados por comas; usado por `team-tasks` (ej: `user1@empresa.com,user2@empresa.com`)
+- `ZOHO_TEAM_NAMES` — fragmentos de nombre separados por comas para detectar miembros por nombre (ej: `jose ramon,tejeda,kevin`)
 
 `tokens.json` (generado por `npm run setup`) almacena los tokens OAuth activos incluyendo el refresh token. Ambos archivos están en `.gitignore` y son requeridos en tiempo de ejecución.
 

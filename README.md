@@ -27,10 +27,16 @@ ZOHO_CLIENT_ID=tu_client_id
 ZOHO_CLIENT_SECRET=tu_client_secret
 ZOHO_PORTAL_NAME=nombre_de_tu_portal
 ZOHO_MY_USER_ID=tu_id_de_usuario_numerico
+ZOHO_MY_NAME=Tu Nombre Completo
+ZOHO_TEAM_EMAILS=usuario1@empresa.com,usuario2@empresa.com
+ZOHO_TEAM_NAMES=nombre1,apellido1,nombre2,apellido2
 ```
 
 - `ZOHO_PORTAL_NAME` — nombre del portal en la URL de Zoho Projects (por defecto: `sigobproyectos`)
 - `ZOHO_MY_USER_ID` — ID numérico del usuario que se asigna por defecto al crear tareas; obténlo ejecutando `list_users` en cualquier proyecto
+- `ZOHO_MY_NAME` — nombre completo del usuario (opcional); amplía la detección de menciones por nombre en `my-mentions`
+- `ZOHO_TEAM_EMAILS` — lista separada por comas de emails del equipo para `team-tasks`
+- `ZOHO_TEAM_NAMES` — fragmentos de nombre separados por comas para detectar miembros del equipo por nombre (ej: `"jose ramon,tejeda,kevin"`)
 
 > Para crear las credenciales OAuth, registra una aplicación en la [Consola de Desarrolladores de Zoho](https://api-console.zoho.com/) con URI de redirección `http://localhost:8080/callback`.
 
@@ -67,12 +73,25 @@ Agrega el servidor al archivo de configuración de Claude Desktop (`claude_deskt
 npm start
 ```
 
-### Listar tareas abiertas del equipo
+### Scripts de utilidad
 
-Script independiente que muestra las tareas abiertas asignadas a los miembros del equipo en todos los proyectos:
+**Tareas abiertas del equipo**
+
+Muestra las tareas abiertas asignadas a los miembros del equipo en todos los proyectos. Requiere `ZOHO_TEAM_EMAILS` y/o `ZOHO_TEAM_NAMES` en `.env`:
 
 ```bash
 npm run team-tasks
+```
+
+**Menciones en comentarios**
+
+Busca todos los comentarios donde te mencionan (`[~ZOHO_MY_USER_ID]`) en uno o todos los proyectos. Soporta filtro por rango de fechas:
+
+```bash
+npm run my-mentions                                        # todos los proyectos
+npm run my-mentions -- "nombre-proyecto"                  # un proyecto específico
+npm run my-mentions -- --from=2026-05-01 --to=2026-06-09 # con rango de fechas
+npm run my-mentions -- "nombre-proyecto" --from=2026-06-01
 ```
 
 ## Herramientas MCP disponibles
@@ -110,7 +129,8 @@ src/
 └── setup-auth.js    # Flujo OAuth2 de una sola vez
 
 scripts/
-└── my-open-tasks.js # Utilidad CLI — tareas abiertas del equipo en todos los proyectos
+├── my-open-tasks.js # Utilidad CLI — tareas abiertas del equipo en todos los proyectos
+└── my-mentions.js   # Utilidad CLI — comentarios que te mencionan, con filtro de fechas
 ```
 
 El cliente HTTP (`zoho-client.js`) intercepta respuestas 401, renueva el access token usando el refresh token y reintenta la solicitud original de forma transparente.

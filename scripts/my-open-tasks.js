@@ -3,14 +3,12 @@ import { zohoClient } from "../src/zoho-client.js";
 
 const PORTAL = process.env.ZOHO_PORTAL_NAME || "sigobproyectos";
 
-const TEAM_EMAILS = new Set([
-  "jose.tejeda@sigob.com.mx",
-  "kevin.lizarraga@sigob.com.mx",
-  "arturo.lora@sigob.com.mx",
-  "marco.delgado@sigob.com.mx",
-]);
+const TEAM_EMAILS = new Set(
+  (process.env.ZOHO_TEAM_EMAILS || "").split(",").map(e => e.trim()).filter(Boolean)
+);
 
-const TEAM_NAME_FRAGMENTS = ["jose ramon", "tejeda", "kevin", "lizarraga", "arturo lora", "marco delgado"];
+const TEAM_NAME_FRAGMENTS = (process.env.ZOHO_TEAM_NAMES || "")
+  .split(",").map(n => n.trim().toLowerCase()).filter(Boolean);
 
 function isTeamMember(user) {
   if (!user) return false;
