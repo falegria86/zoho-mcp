@@ -99,14 +99,14 @@ server.tool(
 // ── create_task ───────────────────────────────────────────────────────────────
 server.tool(
   "create_task",
-  "Crea una nueva tarea. Acepta nombre o ID de proyecto. Si no se especifica responsable, se asigna al usuario configurado en ZOHO_MY_USER_ID.",
+  "Crea una nueva tarea. Acepta nombre o ID de proyecto. Defaults automáticos si no se especifican: propietario=ZOHO_MY_USER_ID, revisor=ZOHO_MY_USER_ID, revisor_de_desarrollo=ZOHO_MY_USER_ID, work=8:00, tamaño=3.",
   {
     project_id:         z.string().describe("ID numérico o nombre del proyecto (ej: 'sigob-sir-lite')"),
     name:               z.string().describe("Nombre de la tarea"),
     description:        z.string().optional().describe("Descripción"),
     priority:           z.enum(["high", "medium", "low", "none"]).optional(),
     person_responsible: z.string().optional().describe("ID (zpuid) del usuario responsable (por defecto: ZOHO_MY_USER_ID del .env)"),
-    start_date:         z.string().optional().describe("Fecha de inicio MM-DD-YYYY"),
+    start_date:         z.string().optional().describe("Fecha de inicio MM-DD-YYYY (requerida por Zoho; por defecto: hoy)"),
     due_date:           z.string().optional().describe("Fecha de vencimiento MM-DD-YYYY"),
     tasklist_id:        z.string().optional().describe("ID de la lista de tareas"),
     custom_fields:      z.record(z.string()).optional().describe("Campos personalizados por api_name (ej: {cf_area_tecnica: 'Backend'})"),
@@ -119,7 +119,8 @@ server.tool(
     if (description) body.description = description;
     if (priority)    body.priority = priority;
     if (responsible) body.owners_and_work = { owners: [{ zpuid: responsible }] };
-    if (start_date)  body.start_date = toISODate(start_date);
+    const effectiveStartDate = start_date || new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }).replace(/\//g, "-");
+    body.start_date = toISODate(effectiveStartDate);
     if (due_date)    body.end_date = toISODate(due_date);
     if (tasklist_id) body.tasklist = { id: tasklist_id };
     if (custom_fields) {
@@ -127,6 +128,14 @@ server.tool(
         try { body[key] = JSON.parse(val); } catch { body[key] = val; }
       }
     }
+
+    const myId = process.env.ZOHO_MY_USER_ID;
+    if (myId) {
+      if (!body.revisor)              body.revisor              = { zpuid: myId };
+      if (!body.revisor_de_desarrollo) body.revisor_de_desarrollo = { zpuid: myId };
+    }
+    if (!body.work)                              body.work = "8:00";
+    if (!body.tamano_de_tarea_1_facil_5_dificil) body.tamano_de_tarea_1_facil_5_dificil = "3";
 
     const t = await zohoClient.post(`/portal/${PORTAL}/projects/${resolvedId}/tasks`, body);
     if (t?.id) return text(`Tarea creada.\nID: ${t.id} | Nombre: ${t.name}`);

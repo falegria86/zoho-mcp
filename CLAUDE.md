@@ -67,6 +67,7 @@ El refresco de tokens es transparente: `zoho-client.js` reintenta cualquier 401 
 - `project_id` acepta nombre o ID numérico (ej: `"sigob-sir-lite"` o `"123456"`)
 - Si no se especifica `person_responsible`, se asigna automáticamente el usuario en `ZOHO_MY_USER_ID`
 - Campos disponibles: `name`, `description`, `priority` (lowercase: `high/medium/low/none`), `start_date`, `due_date` (formato MM-DD-YYYY, se convierte a ISO internamente), `tasklist_id`, `custom_fields`
+- `start_date` es **requerida por la API de Zoho**; si no se proporciona, el servidor usa la fecha de hoy automáticamente
 - Para campos personalizados usar `list_task_fields` para obtener los `api_name` y pasarlos en `custom_fields` como `{"cf_area_tecnica": "Backend"}`
 
 ## API Zoho Projects V3 — Notas de Migración
