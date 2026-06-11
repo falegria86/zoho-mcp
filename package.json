@@ -6,7 +6,9 @@
     "start": "node src/server.js",
     "setup": "node src/setup-auth.js",
     "team-tasks": "node scripts/my-open-tasks.js",
-    "my-mentions": "node scripts/my-mentions.js"
+    "my-mentions": "node scripts/my-mentions.js",
+    "timer:start": "node scripts/auto-timer.js start",
+    "timer:stop": "node scripts/auto-timer.js stop"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

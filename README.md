@@ -37,6 +37,9 @@ ZOHO_TEAM_NAMES=nombre1,apellido1,nombre2,apellido2
 - `ZOHO_MY_NAME` — nombre completo del usuario (opcional); amplía la detección de menciones por nombre en `my-mentions`
 - `ZOHO_TEAM_EMAILS` — lista separada por comas de emails del equipo para `team-tasks`
 - `ZOHO_TEAM_NAMES` — fragmentos de nombre separados por comas para detectar miembros del equipo por nombre (ej: `"jose ramon,tejeda,kevin"`)
+- `ZOHO_AUTO_TIMER_PROJECT_ID` — ID numérico del proyecto para el timer automático (ver sección Railway)
+- `ZOHO_AUTO_TIMER_TASK_ID` — ID numérico de la tarea en la que se inicia/detiene el timer automático
+- `ZOHO_REFRESH_TOKEN` — refresh token OAuth; solo necesario en entornos sin `tokens.json` (Railway, CI)
 
 > Para crear las credenciales OAuth, registra una aplicación en la [Consola de Desarrolladores de Zoho](https://api-console.zoho.com/) con URI de redirección `http://localhost:8080/callback`.
 
@@ -153,6 +156,59 @@ src/api/save.js
 ```html
 <h3>SITUACIÓN ACTUAL</h3><br><br><p>El sistema presenta errores al guardar.</p><h3>LO QUE SE NECESITA</h3><br><br><ul><li>Revisar el endpoint de guardado</li><li>Agregar validación en el frontend</li></ul><h3>ARCHIVOS A MODIFICAR</h3><br><br><p>src/api/save.js</p>
 ```
+
+## Timer automático con Railway (cron)
+
+El script `scripts/auto-timer.js` inicia o detiene el timer de una tarea de Zoho según el argumento que recibe. La tarea objetivo se configura vía variables de entorno, por lo que **cada usuario puede apuntar a su propia tarea** sin tocar el código.
+
+```bash
+npm run timer:start   # inicia el timer en ZOHO_AUTO_TIMER_TASK_ID
+npm run timer:stop    # detiene el timer
+```
+
+### Variables de entorno requeridas
+
+```env
+ZOHO_AUTO_TIMER_PROJECT_ID=106599000032339072
+ZOHO_AUTO_TIMER_TASK_ID=106599000033129351
+ZOHO_REFRESH_TOKEN=<tu_refresh_token de tokens.json>
+```
+
+> `ZOHO_REFRESH_TOKEN` reemplaza a `tokens.json` en entornos sin sistema de archivos persistente. Lo encuentras en tu `tokens.json` local bajo la clave `refresh_token`.
+
+### Configuración en Railway
+
+Railway ejecuta cada cron service como un contenedor que corre el comando y termina. Se necesitan **dos servicios** en el mismo proyecto:
+
+**Servicio 1 — iniciar timer**
+
+| Campo | Valor |
+|---|---|
+| Tipo | Cron Job |
+| Comando | `node scripts/auto-timer.js start` |
+| Schedule | `0 8 * * 1-5` *(lunes a viernes 8am)* |
+
+**Servicio 2 — detener timer**
+
+| Campo | Valor |
+|---|---|
+| Tipo | Cron Job |
+| Comando | `node scripts/auto-timer.js stop` |
+| Schedule | `0 17 * * 1-5` *(lunes a viernes 5pm)* |
+
+**Variables de entorno en Railway** (en cada servicio):
+
+```
+ZOHO_CLIENT_ID
+ZOHO_CLIENT_SECRET
+ZOHO_PORTAL_NAME
+ZOHO_REFRESH_TOKEN
+ZOHO_AUTO_TIMER_PROJECT_ID
+ZOHO_AUTO_TIMER_TASK_ID
+TZ=America/Mexico_City
+```
+
+> Railway corre en UTC. Definir `TZ=America/Mexico_City` hace que los logs muestren la hora local correcta, pero el schedule del cron **siempre se interpreta en UTC**. Para 8am Ciudad de México (UTC-6) usa `0 14 * * 1-5`; para 5pm (UTC-6) usa `0 23 * * 1-5`. Si el horario de verano (UTC-5) es relevante, ajusta una hora.
 
 ## Arquitectura
 
