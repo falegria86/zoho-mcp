@@ -21,8 +21,8 @@ No hay paso de compilación ni pruebas — el proyecto corre directamente como m
 
 Tres archivos fuente con separación clara de responsabilidades:
 
-- **`src/server.js`** — Punto de entrada del servidor MCP. Registra las 10 herramientas con esquemas de parámetros Zod y delega cada una a `zohoClient`. La variable de entorno `ZOHO_PORTAL_NAME` (por defecto: `sigobproyectos`) define el portal en todas las rutas de la API.
-- **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/restapi`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/x-www-form-urlencoded`.
+- **`src/server.js`** — Punto de entrada del servidor MCP. Al arrancar llama a `GET /api/v3/portals` para resolver el nombre del portal (`ZOHO_PORTAL_NAME`) a su ID numérico requerido por V3, y lo almacena en la variable `PORTAL`. Registra las 11 herramientas con esquemas de parámetros Zod y delega cada una a `zohoClient`.
+- **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/api/v3`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/json`.
 - **`src/setup-auth.js`** — Configuración OAuth2 de una sola vez: abre la URL de autorización, recibe el código via servidor HTTP local en el puerto 8080, lo intercambia por tokens y escribe `tokens.json`.
 
 ### Scripts utilitarios (`scripts/`)
@@ -48,8 +48,8 @@ Variable de entorno opcional: `ZOHO_MY_NAME` — si se define (ej: `"Francisco G
 
 `.env` contiene:
 - `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET` — credenciales OAuth de la app Zoho
-- `ZOHO_PORTAL_NAME` — nombre del portal (por defecto: `sigobproyectos`)
-- `ZOHO_MY_USER_ID` — ID numérico del usuario por defecto para asignación automática en `create_task` (obtenerlo con `list_users` en cualquier proyecto)
+- `ZOHO_PORTAL_NAME` — nombre del portal (ej: `sigobproyectos`); el servidor lo resuelve automáticamente a ID numérico al arrancar via `GET /api/v3/portals`
+- `ZOHO_MY_USER_ID` — zpuid del usuario por defecto para asignación automática en `create_task` (obtenerlo con `list_users` en cualquier proyecto)
 - `ZOHO_MY_NAME` — nombre completo del usuario (opcional); usado por `my-mentions` para detectar menciones por nombre
 - `ZOHO_TEAM_EMAILS` — emails del equipo separados por comas; usado por `team-tasks` (ej: `user1@empresa.com,user2@empresa.com`)
 - `ZOHO_TEAM_NAMES` — fragmentos de nombre separados por comas para detectar miembros por nombre (ej: `jose ramon,tejeda,kevin`)
@@ -66,5 +66,51 @@ El refresco de tokens es transparente: `zoho-client.js` reintenta cualquier 401 
 
 - `project_id` acepta nombre o ID numérico (ej: `"sigob-sir-lite"` o `"123456"`)
 - Si no se especifica `person_responsible`, se asigna automáticamente el usuario en `ZOHO_MY_USER_ID`
-- Campos disponibles: `name`, `description`, `priority`, `start_date`, `due_date`, `estimated_hours` (decimal, ej: `"8"` o `"1.5"`), `tasklist_id`, `custom_fields`
-- Para campos personalizados (área técnica, tamaño, etc.), usar `list_task_fields` para obtener los `column_name` correspondientes y pasarlos en `custom_fields` como `{"UDF_CHAR1": "valor"}`
+- Campos disponibles: `name`, `description`, `priority` (lowercase: `high/medium/low/none`), `start_date`, `due_date` (formato MM-DD-YYYY, se convierte a ISO internamente), `tasklist_id`, `custom_fields`
+- Para campos personalizados usar `list_task_fields` para obtener los `api_name` y pasarlos en `custom_fields` como `{"cf_area_tecnica": "Backend"}`
+
+## API Zoho Projects V3 — Notas de Migración
+
+El proyecto fue migrado de la API V2 (`/restapi/`) a V3 (`/api/v3/`) en junio 2026. El soporte de V2 terminó en diciembre 2025.
+
+### Diferencias clave V2 → V3
+
+| Aspecto | V2 | V3 |
+|---|---|---|
+| Base URL | `/restapi/portal/{name}/...` | `/api/v3/portal/{id}/...` |
+| Content-Type | `application/x-www-form-urlencoded` | `application/json` |
+| Portal identificador | Nombre (ej: `sigobproyectos`) | **ID numérico** (ej: `739121528`) |
+| HTTP update | `PUT` | `PATCH` |
+| Trailing slash | Requerido | **No usar** |
+| Fechas | `MM-DD-YYYY` | ISO 8601 (`YYYY-MM-DD`) |
+| Task owner | `person_responsible: "id"` | `owners_and_work: { owners: [{ zpuid: "id" }] }` |
+| Task ID field | `id_string` | `id` |
+| Task owners en response | `details.owners[]` | `owners_and_work.owners[]` |
+| Status en update | String `"Open"` | Objeto `{ id: "..." }` o `{ name: "..." }` |
+| Custom fields | `UDF_CHAR1`, `UDF_LONG2` | `api_name` (ej: `cf_area_tecnica`) |
+| get_task response | `{ tasks: [task] }` | Task object directo |
+| create_task response | `{ tasks: [task] }` | Task object directo |
+
+### Timer V3
+
+El endpoint de timer cambió completamente:
+- **Start**: `POST /api/v3/portal/{id}/timelogs/timers` con body `{ entity_id, project_id, module_id }` — el `module_id` se obtiene dinámicamente de `GET /projects/{id}/modules` buscando `module_name === "Task"`
+- **Stop**: Dos pasos — `GET /timelogs/timers` para obtener el timer ID activo, luego `PATCH /timelogs/timers/{id}/stop`. Zoho descarta automáticamente timers de menos de 30 segundos.
+- **Get running**: `GET /api/v3/portal/{id}/timelogs/timers?type=task`
+- La path `(timesheet|timelogs)` en los docs significa que ambas palabras funcionan; usamos `timelogs`
+
+### Respuesta de proyectos
+
+`GET /api/v3/portal/{id}/projects` devuelve un **array directo** `[{...}]`, no `{ projects: [...] }`. El código usa `Array.isArray(r) ? r : (r.projects || [])` para manejar ambos formatos.
+
+El objeto proyecto en V3 tiene `status` como objeto `{ id, name, color, is_closed_type }`, no string.
+
+### Portal ID numérico
+
+V3 requiere ID numérico del portal en todas las rutas. El servidor resuelve esto automáticamente al arrancar:
+
+```
+GET /api/v3/portals  →  [ { portal_name: "sigobproyectos", id: "123456789", ... } ]
+```
+
+La función `initPortalId()` en `server.js` busca el portal por `portal_name`, `org_name` o `name` y actualiza la variable `PORTAL` con el ID numérico antes de aceptar cualquier tool call. Si `ZOHO_PORTAL_NAME` ya es numérico, se usa directamente sin llamar al endpoint.

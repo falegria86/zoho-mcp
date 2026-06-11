@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 
 const BASE_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TOKENS_FILE = join(BASE_DIR, "tokens.json");
-const BASE_URL = "https://projectsapi.zoho.com/restapi";
+const BASE_URL = "https://projectsapi.zoho.com/api/v3";
 const TOKEN_URL = "https://accounts.zoho.com/oauth/v2/token";
 
 class ZohoClient {
@@ -58,8 +58,8 @@ class ZohoClient {
       headers: { Authorization: `Zoho-oauthtoken ${this.accessToken}` },
     };
     if (body) {
-      options.headers["Content-Type"] = "application/x-www-form-urlencoded";
-      options.body = new URLSearchParams(body).toString();
+      options.headers["Content-Type"] = "application/json";
+      options.body = JSON.stringify(body);
     }
 
     let res = await fetch(`${BASE_URL}${path}`, options);
@@ -76,9 +76,9 @@ class ZohoClient {
     return this._request("GET", qs ? `${path}?${qs}` : path);
   }
 
-  post(path, body) { return this._request("POST", path, body); }
-  put(path, body)  { return this._request("PUT",  path, body); }
-  delete(path)     { return this._request("DELETE", path); }
+  post(path, body)  { return this._request("POST",   path, body); }
+  patch(path, body) { return this._request("PATCH",  path, body); }
+  delete(path)      { return this._request("DELETE", path); }
 }
 
 export const zohoClient = new ZohoClient();

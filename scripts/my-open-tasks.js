@@ -1,7 +1,8 @@
 import "dotenv/config";
 import { zohoClient } from "../src/zoho-client.js";
 
-const PORTAL = process.env.ZOHO_PORTAL_NAME || "sigobproyectos";
+const PORTAL_NAME = process.env.ZOHO_PORTAL_NAME || "sigobproyectos";
+let PORTAL = PORTAL_NAME;
 
 const TEAM_EMAILS = new Set(
   (process.env.ZOHO_TEAM_EMAILS || "").split(",").map(e => e.trim()).filter(Boolean)
@@ -9,6 +10,16 @@ const TEAM_EMAILS = new Set(
 
 const TEAM_NAME_FRAGMENTS = (process.env.ZOHO_TEAM_NAMES || "")
   .split(",").map(n => n.trim().toLowerCase()).filter(Boolean);
+
+async function initPortalId() {
+  if (/^\d+$/.test(PORTAL_NAME)) return;
+  const portals = await zohoClient.get("/portals");
+  const list = Array.isArray(portals) ? portals : (portals.portals || []);
+  const match = list.find(p =>
+    p.portal_name === PORTAL_NAME || p.org_name === PORTAL_NAME || p.name === PORTAL_NAME
+  );
+  if (match?.id) PORTAL = String(match.id);
+}
 
 function isTeamMember(user) {
   if (!user) return false;
@@ -18,27 +29,27 @@ function isTeamMember(user) {
 }
 
 function teamOwners(task) {
-  return (task.details?.owners || []).filter(isTeamMember).map(u => u.name);
+  return (task.owners_and_work?.owners || []).filter(isTeamMember).map(u => u.name);
 }
 
 const CLOSED_STATUSES = new Set(["closed", "cerrada", "done", "completada"]);
 
 async function getOpenTasksForProject(project) {
   try {
-    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project.id_string}/tasks/`);
+    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project.id}/tasks`);
     const tasks = (r.tasks || []).filter(
       t => !CLOSED_STATUSES.has((t.status?.name || "").toLowerCase())
     );
     return tasks
       .filter(t => teamOwners(t).length > 0)
       .map(t => ({
-        project: project.name,
-        id: t.id_string,
-        name: t.name,
-        status: t.status?.name || "N/A",
+        project:  project.name,
+        id:       t.id,
+        name:     t.name,
+        status:   t.status?.name || "N/A",
         priority: t.priority || "N/A",
-        owners: teamOwners(t).join(", "),
-        due_date: t.end_date || "—",
+        owners:   teamOwners(t).join(", "),
+        due_date: t.end_date ? t.end_date.slice(0, 10) : "—",
       }));
   } catch {
     return [];
@@ -46,9 +57,10 @@ async function getOpenTasksForProject(project) {
 }
 
 async function main() {
+  await initPortalId();
   console.log("Obteniendo proyectos...\n");
-  const r = await zohoClient.get(`/portal/${PORTAL}/projects/`);
-  const projects = r.projects || [];
+  const r = await zohoClient.get(`/portal/${PORTAL}/projects`);
+  const projects = Array.isArray(r) ? r : (r.projects || []);
 
   console.log(`Buscando tareas abiertas en ${projects.length} proyectos...\n`);
 

@@ -7,13 +7,24 @@
 import "dotenv/config";
 import { zohoClient } from "../src/zoho-client.js";
 
-const PORTAL = process.env.ZOHO_PORTAL_NAME || "sigobproyectos";
+const PORTAL_NAME = process.env.ZOHO_PORTAL_NAME || "sigobproyectos";
+let PORTAL = PORTAL_NAME;
 const MY_USER_ID = process.env.ZOHO_MY_USER_ID;
 const MY_NAME = process.env.ZOHO_MY_NAME || "";
 
 if (!MY_USER_ID) {
   console.error("Error: ZOHO_MY_USER_ID no está definido en .env");
   process.exit(1);
+}
+
+async function initPortalId() {
+  if (/^\d+$/.test(PORTAL_NAME)) return;
+  const portals = await zohoClient.get("/portals");
+  const list = Array.isArray(portals) ? portals : (portals.portals || []);
+  const match = list.find(p =>
+    p.portal_name === PORTAL_NAME || p.org_name === PORTAL_NAME || p.name === PORTAL_NAME
+  );
+  if (match?.id) PORTAL = String(match.id);
 }
 
 // ── args ──────────────────────────────────────────────────────────────────────
@@ -27,8 +38,8 @@ const toDate   = toArg   ? new Date(toArg + "T23:59:59") : null;
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 async function getAllProjects() {
-  const r = await zohoClient.get(`/portal/${PORTAL}/projects/`);
-  return r.projects || [];
+  const r = await zohoClient.get(`/portal/${PORTAL}/projects`);
+  return Array.isArray(r) ? r : (r.projects || []);
 }
 
 async function resolveProject(nameOrId) {
@@ -39,26 +50,26 @@ async function resolveProject(nameOrId) {
     p.name.toLowerCase().includes(nameOrId.toLowerCase())
   );
   if (!match) throw new Error(`No se encontró proyecto: "${nameOrId}"`);
-  return { id: match.id_string, name: match.name };
+  return { id: match.id, name: match.name };
 }
 
 async function getAllTasks(projectId) {
   const tasks = [];
-  let index = 1;
+  let page = 1;
   while (true) {
     let r;
     try {
-      r = await zohoClient.get(`/portal/${PORTAL}/projects/${projectId}/tasks/`, {
-        range: 100,
-        index,
+      r = await zohoClient.get(`/portal/${PORTAL}/projects/${projectId}/tasks`, {
+        per_page: 100,
+        page,
       });
     } catch {
       break;
     }
     const batch = r.tasks || [];
     tasks.push(...batch);
-    if (batch.length < 100) break;
-    index += 100;
+    if (!r.page_info?.has_next_page || batch.length < 100) break;
+    page++;
   }
   return tasks;
 }
@@ -68,7 +79,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function getComments(projectId, taskId, attempt = 0) {
   try {
     const r = await zohoClient.get(
-      `/portal/${PORTAL}/projects/${projectId}/tasks/${taskId}/comments/`
+      `/portal/${PORTAL}/projects/${projectId}/tasks/${taskId}/comments`
     );
     if (r?.error?.title === "URL_ROLLING_THROTTLES_LIMIT_EXCEEDED") {
       if (attempt >= 2) return [];
@@ -85,7 +96,7 @@ async function getComments(projectId, taskId, attempt = 0) {
 async function getSubtasks(projectId, taskId) {
   try {
     const r = await zohoClient.get(
-      `/portal/${PORTAL}/projects/${projectId}/tasks/${taskId}/subtasks/`
+      `/portal/${PORTAL}/projects/${projectId}/tasks/${taskId}/subtasks`
     );
     return r.tasks || [];
   } catch {
@@ -108,11 +119,11 @@ async function pLimit(jobs, limit) {
 }
 
 // ── filtering ─────────────────────────────────────────────────────────────────
-function parseZohoDate(comment) {
-  const ms = comment.added_time_long || comment.added_time;
-  if (!ms) return null;
-  const n = typeof ms === "string" ? parseInt(ms, 10) : ms;
-  return isNaN(n) ? null : new Date(n);
+function parseCommentDate(comment) {
+  const raw = comment.created_time || comment.added_time_long || comment.added_time;
+  if (!raw) return null;
+  const d = new Date(typeof raw === "number" ? raw : raw);
+  return isNaN(d) ? null : d;
 }
 
 function mentionsMe(content) {
@@ -149,13 +160,13 @@ async function scanProject(project) {
 
   const jobs = tasks.map(task => async () => {
     const [comments, subtasks] = await Promise.all([
-      getComments(project.id, task.id_string),
-      getSubtasks(project.id, task.id_string),
+      getComments(project.id, task.id),
+      getSubtasks(project.id, task.id),
     ]);
     const subtaskResults = await Promise.all(
       subtasks.map(async sub => ({
         task: { ...sub, name: `${task.name} › ${sub.name}` },
-        comments: await getComments(project.id, sub.id_string),
+        comments: await getComments(project.id, sub.id),
       }))
     );
     return [{ task, comments }, ...subtaskResults];
@@ -167,13 +178,13 @@ async function scanProject(project) {
   for (const { task, comments } of taskResults) {
     for (const c of comments) {
       if (!mentionsMe(c.content)) continue;
-      const date = parseZohoDate(c);
+      const date = parseCommentDate(c);
       if (fromDate && date && date < fromDate) continue;
       if (toDate   && date && date > toDate)   continue;
       mentions.push({
         project:   project.name,
         task_name: task.name,
-        author:    c.added_by || "Desconocido",
+        author:    c.posted_by?.name || c.added_by || "Desconocido",
         date:      date ? date.toISOString().slice(0, 10) : "?",
         content:   c.content || "",
       });
@@ -184,6 +195,7 @@ async function scanProject(project) {
 
 // ── main ──────────────────────────────────────────────────────────────────────
 async function main() {
+  await initPortalId();
   const rangeLabel = [fromArg, toArg].filter(Boolean).join(" → ") || "sin rango";
   console.log(`\nUsuario: ${MY_USER_ID}  |  Rango: ${rangeLabel}\n`);
 
@@ -193,11 +205,10 @@ async function main() {
     projects = [p];
     console.log(`Proyecto: ${p.name} (${p.id})\n`);
   } else {
-    projects = (await getAllProjects()).map(p => ({ id: p.id_string, name: p.name }));
+    projects = (await getAllProjects()).map(p => ({ id: p.id, name: p.name }));
     console.log(`Escaneando ${projects.length} proyecto(s):\n`);
   }
 
-  // Scan projects one by one; within each project tasks run with concurrency 3.
   const allMentions = [];
   for (const project of projects) {
     const mentions = await scanProject(project);
@@ -226,10 +237,10 @@ async function main() {
   const sorted = allMentions.sort((a, b) => b.date.localeCompare(a.date));
   for (const m of sorted) {
     console.log(
-      col(m.project,                      COLS.project) +
-      col(m.task_name,                    COLS.task) +
-      col(m.author,                       COLS.author) +
-      col(m.date,                         COLS.date) +
+      col(m.project,                        COLS.project) +
+      col(m.task_name,                      COLS.task) +
+      col(m.author,                         COLS.author) +
+      col(m.date,                           COLS.date) +
       col(truncate(m.content, COLS.content), COLS.content)
     );
   }
