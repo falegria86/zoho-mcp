@@ -82,7 +82,7 @@ El proyecto fue migrado de la API V2 (`/restapi/`) a V3 (`/api/v3/`) en junio 20
 | Portal identificador | Nombre (ej: `sigobproyectos`) | **ID numérico** (ej: `739121528`) |
 | HTTP update | `PUT` | `PATCH` |
 | Trailing slash | Requerido | **No usar** |
-| Fechas | `MM-DD-YYYY` | ISO 8601 (`YYYY-MM-DD`) |
+| Fechas | `MM-DD-YYYY` | ISO 8601 completo: `YYYY-MM-DDTHH:mm:ss.SSSZ` |
 | Task owner | `person_responsible: "id"` | `owners_and_work: { owners: [{ zpuid: "id" }] }` |
 | Task ID field | `id_string` | `id` |
 | Task owners en response | `details.owners[]` | `owners_and_work.owners[]` |
@@ -90,6 +90,9 @@ El proyecto fue migrado de la API V2 (`/restapi/`) a V3 (`/api/v3/`) en junio 20
 | Custom fields | `UDF_CHAR1`, `UDF_LONG2` | `api_name` (ej: `cf_area_tecnica`) |
 | get_task response | `{ tasks: [task] }` | Task object directo |
 | create_task response | `{ tasks: [task] }` | Task object directo |
+| Comentario (campo body) | `content` | `comment` |
+| Comentario autor en response | `posted_by.name` / `added_by` | `created_by.name` |
+| add_comment response | `{ comments: [...] }` | Array directo `[{...}]` |
 
 ### Timer V3
 

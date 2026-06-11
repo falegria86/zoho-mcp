@@ -177,16 +177,16 @@ async function scanProject(project) {
 
   for (const { task, comments } of taskResults) {
     for (const c of comments) {
-      if (!mentionsMe(c.content)) continue;
+      if (!mentionsMe(c.comment)) continue;
       const date = parseCommentDate(c);
       if (fromDate && date && date < fromDate) continue;
       if (toDate   && date && date > toDate)   continue;
       mentions.push({
         project:   project.name,
         task_name: task.name,
-        author:    c.posted_by?.name || c.added_by || "Desconocido",
+        author:    c.created_by?.name || "Desconocido",
         date:      date ? date.toISOString().slice(0, 10) : "?",
-        content:   c.content || "",
+        content:   c.comment || "",
       });
     }
   }

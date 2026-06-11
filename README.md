@@ -114,10 +114,11 @@ npm run my-mentions -- "nombre-proyecto" --from=2026-06-01
 
 - `project_id` acepta nombre o ID numérico: `"sigob-sir-lite"` o `"123456789"`
 - Si no se especifica `person_responsible`, se asigna automáticamente `ZOHO_MY_USER_ID`
-- `estimated_hours` acepta decimales: `"8"` o `"1.5"`
-- Para campos personalizados usa `list_task_fields` para obtener los `column_name` y pásalos en `custom_fields`:
+- `priority` debe ir en minúsculas: `"high"`, `"medium"`, `"low"`, `"none"`
+- `start_date` y `due_date` usan formato `MM-DD-YYYY` (se convierten a ISO internamente)
+- Para campos personalizados usa `list_task_fields` para obtener los `api_name` y pásalos en `custom_fields`:
   ```json
-  { "UDF_CHAR1": "Backend" }
+  { "cf_area_tecnica": "Backend" }
   ```
 
 ## Arquitectura

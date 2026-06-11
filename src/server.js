@@ -38,7 +38,7 @@ async function resolveProjectId(nameOrId) {
 function toISODate(mmddyyyy) {
   if (!mmddyyyy) return undefined;
   const [m, d, y] = mmddyyyy.split("-");
-  return `${y}-${m}-${d}`;
+  return `${y}-${m}-${d}T00:00:00.000Z`;
 }
 
 // ── list_projects ────────────────────────────────────────────────────────────
@@ -122,7 +122,11 @@ server.tool(
     if (start_date)  body.start_date = toISODate(start_date);
     if (due_date)    body.end_date = toISODate(due_date);
     if (tasklist_id) body.tasklist = { id: tasklist_id };
-    if (custom_fields) Object.assign(body, custom_fields);
+    if (custom_fields) {
+      for (const [key, val] of Object.entries(custom_fields)) {
+        try { body[key] = JSON.parse(val); } catch { body[key] = val; }
+      }
+    }
 
     const t = await zohoClient.post(`/portal/${PORTAL}/projects/${resolvedId}/tasks`, body);
     if (t?.id) return text(`Tarea creada.\nID: ${t.id} | Nombre: ${t.name}`);
@@ -171,7 +175,7 @@ server.tool(
     const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/comments`);
     const comments = r.comments || [];
     if (!comments.length) return text("No hay comentarios en esta tarea.");
-    return text(comments.map(c => `[${c.posted_by?.name || c.added_by || "Desconocido"}]: ${c.content || ""}`).join("\n---\n"));
+    return text(comments.map(c => `[${c.created_by?.name || "Desconocido"}]: ${c.comment || ""}`).join("\n---\n"));
   }
 );
 
@@ -187,9 +191,9 @@ server.tool(
   async ({ project_id, task_id, content }) => {
     const r = await zohoClient.post(
       `/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/comments`,
-      { content }
+      { comment: content }
     );
-    if (r.comments?.length) return text("Comentario agregado exitosamente.");
+    if (Array.isArray(r) && r.length) return text("Comentario agregado exitosamente.");
     return text(`Respuesta: ${JSON.stringify(r)}`);
   }
 );
