@@ -206,11 +206,12 @@ server.tool(
     project_id: z.string().describe("ID del proyecto"),
   },
   async ({ project_id }) => {
-    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/users`);
+    const resolvedId = await resolveProjectId(project_id);
+    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${resolvedId}/users`);
     const users = r.users || [];
     if (!users.length) return text("No se encontraron usuarios.");
     return text(users.map(u =>
-      `ID: ${u.zpuid || u.id || "N/A"} | Nombre: ${u.name || "N/A"} | Email: ${u.email || "N/A"} | Rol: ${u.role || "N/A"}`
+      `zpuid: ${u.zpuid || u.id || "N/A"} | Nombre: ${u.full_name || u.name || "N/A"} | Email: ${u.email || "N/A"} | Rol: ${u.role?.name || u.role || "N/A"}`
     ).join("\n"));
   }
 );
@@ -267,17 +268,22 @@ server.tool(
 // ── list_task_fields ──────────────────────────────────────────────────────────
 server.tool(
   "list_task_fields",
-  "Lista los campos personalizados disponibles en las tareas de un proyecto, incluyendo su column_name para usar en create_task",
+  "Lista los campos disponibles en las tareas de un proyecto (incluidos custom fields), con su api_name para usar en create_task",
   {
     project_id: z.string().describe("ID o nombre del proyecto"),
   },
   async ({ project_id }) => {
     const resolvedId = await resolveProjectId(project_id);
-    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${resolvedId}/taskfields`);
-    const fields = r.taskfields || r.task_fields || r.fields || [];
-    if (!fields.length) return text("No se encontraron campos personalizados.");
+    const myUserId = process.env.ZOHO_MY_USER_ID;
+    if (!myUserId) return text("ZOHO_MY_USER_ID no está definido en .env");
+    const r = await zohoClient.get(
+      `/portal/${PORTAL}/projects/${resolvedId}/users/${myUserId}/fields/permissions`,
+      { modules: "tasks" }
+    );
+    const fields = Array.isArray(r) ? r : (r[myUserId] || []);
+    if (!fields.length) return text(`Sin campos. Respuesta cruda: ${JSON.stringify(r).slice(0, 500)}`);
     return text(fields.map(f =>
-      `api_name: ${f.api_name || f.column_name || "N/A"} | label: ${f.label_name || f.field_name || "N/A"} | tipo: ${f.type || "N/A"}`
+      `api_name: ${f.api_name || "N/A"} | label: ${f.display_name || "N/A"} | tipo: ${f.field_type || "N/A"} | oculto: ${f.is_hidden ?? "N/A"}`
     ).join("\n"));
   }
 );

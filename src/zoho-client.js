@@ -62,11 +62,14 @@ class ZohoClient {
       options.body = JSON.stringify(body);
     }
 
-    let res = await fetch(`${BASE_URL}${path}`, options);
+    const url = path.startsWith("/api/")
+      ? `https://projectsapi.zoho.com${path}`
+      : `${BASE_URL}${path}`;
+    let res = await fetch(url, options);
     if (res.status === 401) {
       await this._refresh();
       options.headers.Authorization = `Zoho-oauthtoken ${this.accessToken}`;
-      res = await fetch(`${BASE_URL}${path}`, options);
+      res = await fetch(url, options);
     }
     return res.json();
   }
