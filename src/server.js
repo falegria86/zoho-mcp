@@ -158,14 +158,16 @@ server.tool(
     project_id:        z.string().describe("ID del proyecto"),
     task_id:           z.string().describe("ID de la tarea"),
     name:              z.string().optional().describe("Nuevo nombre"),
+    description:       z.string().optional().describe("Nueva descripción"),
     status:            z.string().optional().describe("ID numérico del estado, o nombre: 'Open', 'Closed'"),
     priority:          z.enum(["high", "medium", "low", "none"]).optional(),
     person_responsible:z.string().optional().describe("zpuid del usuario responsable"),
     due_date:          z.string().optional().describe("Fecha límite MM-DD-YYYY"),
   },
-  async ({ project_id, task_id, name, status, priority, person_responsible, due_date }) => {
+  async ({ project_id, task_id, name, description, status, priority, person_responsible, due_date }) => {
     const body = {};
     if (name)              body.name = name;
+    if (description)       body.description = description;
     if (status)            body.status = /^\d+$/.test(status) ? { id: status } : { name: status };
     if (priority)          body.priority = priority;
     if (person_responsible)body.owners_and_work = { owners: [{ zpuid: toZpuid(person_responsible) }] };
