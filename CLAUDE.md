@@ -69,6 +69,16 @@ El refresco de tokens es transparente: `zoho-client.js` reintenta cualquier 401 
 - Campos disponibles: `name`, `description`, `priority` (lowercase: `high/medium/low/none`), `start_date`, `due_date` (formato MM-DD-YYYY, se convierte a ISO internamente), `tasklist_id`, `custom_fields`
 - `start_date` es **requerida por la API de Zoho**; si no se proporciona, el servidor usa la fecha de hoy automáticamente
 - Para campos personalizados usar `list_task_fields` para obtener los `api_name` y pasarlos en `custom_fields` como `{"cf_area_tecnica": "Backend"}`
+- `description` se convierte automáticamente a HTML antes de enviarse a Zoho (ver abajo); si ya contiene HTML se envía tal cual
+
+### Formato HTML automático de descripciones
+
+La función `toHtmlDescription` en `server.js` convierte texto plano a HTML estructurado para `create_task` y `update_task`:
+
+- Líneas en **MAYÚSCULAS** → `<h3>TÍTULO</h3><br><br>`
+- Líneas con `-`, `*` o `•` → `<ul><li>...</li></ul>`
+- Resto de líneas → `<p>texto</p>`
+- Si la descripción ya contiene etiquetas HTML, se pasa sin modificar
 
 ## API Zoho Projects V3 — Notas de Migración
 

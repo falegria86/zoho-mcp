@@ -46,6 +46,43 @@ function toISODate(mmddyyyy) {
   return `${y}-${m}-${d}T00:00:00.000Z`;
 }
 
+function toHtmlDescription(text) {
+  if (!text) return text;
+  if (/<[a-z][\s\S]*>/i.test(text)) return text;
+
+  const lines = text.split("\n");
+  const out = [];
+  let listItems = [];
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    out.push(`<ul>${listItems.map(i => `<li>${i}</li>`).join("")}</ul>`);
+    listItems = [];
+  };
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) { flushList(); continue; }
+
+    if (/^[-*•]\s+/.test(line)) {
+      listItems.push(line.replace(/^[-*•]\s+/, ""));
+      continue;
+    }
+
+    flushList();
+
+    // Heading: all-caps line (optionally ending with :), at least 3 chars
+    if (/^[A-ZÁÉÍÓÚÜÑ0-9\s,.()\-_:]{3,}$/.test(line) && line === line.toUpperCase()) {
+      out.push(`<h3>${line.replace(/:$/, "")}</h3><br><br>`);
+    } else {
+      out.push(`<p>${line}</p>`);
+    }
+  }
+
+  flushList();
+  return out.join("");
+}
+
 // ── list_projects ────────────────────────────────────────────────────────────
 server.tool("list_projects", "Lista todos los proyectos del portal", {}, async () => {
   const r = await zohoClient.get(`/portal/${PORTAL}/projects`);
@@ -121,7 +158,7 @@ server.tool(
     const responsible = toZpuid(person_responsible || process.env.ZOHO_MY_USER_ID);
 
     const body = { name };
-    if (description) body.description = description;
+    if (description) body.description = toHtmlDescription(description);
     if (priority)    body.priority = priority;
     if (responsible) body.owners_and_work = { owners: [{ zpuid: responsible }] };
     const effectiveStartDate = start_date || new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }).replace(/\//g, "-");
@@ -167,7 +204,7 @@ server.tool(
   async ({ project_id, task_id, name, description, status, priority, person_responsible, due_date }) => {
     const body = {};
     if (name)              body.name = name;
-    if (description)       body.description = description;
+    if (description)       body.description = toHtmlDescription(description);
     if (status)            body.status = /^\d+$/.test(status) ? { id: status } : { name: status };
     if (priority)          body.priority = priority;
     if (person_responsible)body.owners_and_work = { owners: [{ zpuid: toZpuid(person_responsible) }] };

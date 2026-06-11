@@ -121,6 +121,39 @@ npm run my-mentions -- "nombre-proyecto" --from=2026-06-01
   { "cf_area_tecnica": "Backend" }
   ```
 
+### Formato HTML de descripciones
+
+El campo `description` en `create_task` y `update_task` se convierte automáticamente a HTML antes de enviarse a Zoho, para que se renderice correctamente en la interfaz.
+
+- Si el texto **ya contiene HTML**, se envía tal cual.
+- Si es **texto plano**, se aplica la siguiente conversión:
+
+| Entrada | HTML generado |
+|---|---|
+| Línea en MAYÚSCULAS (ej: `SITUACIÓN ACTUAL`) | `<h3>SITUACIÓN ACTUAL</h3><br><br>` |
+| Línea con `-`, `*` o `•` al inicio | Agrupada en `<ul><li>...</li></ul>` |
+| Cualquier otro texto | `<p>texto</p>` |
+
+**Ejemplo de entrada:**
+
+```
+SITUACIÓN ACTUAL
+El sistema presenta errores al guardar.
+
+LO QUE SE NECESITA
+- Revisar el endpoint de guardado
+- Agregar validación en el frontend
+
+ARCHIVOS A MODIFICAR
+src/api/save.js
+```
+
+**HTML generado:**
+
+```html
+<h3>SITUACIÓN ACTUAL</h3><br><br><p>El sistema presenta errores al guardar.</p><h3>LO QUE SE NECESITA</h3><br><br><ul><li>Revisar el endpoint de guardado</li><li>Agregar validación en el frontend</li></ul><h3>ARCHIVOS A MODIFICAR</h3><br><br><p>src/api/save.js</p>
+```
+
 ## Arquitectura
 
 ```
