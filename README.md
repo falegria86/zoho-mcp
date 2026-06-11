@@ -157,28 +157,51 @@ src/api/save.js
 <h3>SITUACIÓN ACTUAL</h3><br><br><p>El sistema presenta errores al guardar.</p><h3>LO QUE SE NECESITA</h3><br><br><ul><li>Revisar el endpoint de guardado</li><li>Agregar validación en el frontend</li></ul><h3>ARCHIVOS A MODIFICAR</h3><br><br><p>src/api/save.js</p>
 ```
 
-## Timer automático con Railway (cron)
+## Timer automático (cron)
 
-El script `scripts/auto-timer.js` inicia o detiene el timer de una tarea de Zoho según el argumento que recibe. La tarea objetivo se configura vía variables de entorno, por lo que **cada usuario puede apuntar a su propia tarea** sin tocar el código.
+El script `scripts/auto-timer.js` inicia o detiene el timer de una tarea de Zoho automáticamente. La tarea objetivo se configura vía variables de entorno — **cada usuario apunta a su propia tarea sin tocar el código**.
 
 ```bash
-npm run timer:start   # inicia el timer en ZOHO_AUTO_TIMER_TASK_ID
+npm run timer:start   # inicia el timer
 npm run timer:stop    # detiene el timer
 ```
 
-### Variables de entorno requeridas
+### Paso 1 — obtener los IDs de tu tarea
 
-```env
-ZOHO_AUTO_TIMER_PROJECT_ID=106599000032339072
-ZOHO_AUTO_TIMER_TASK_ID=106599000033129351
-ZOHO_REFRESH_TOKEN=<tu_refresh_token de tokens.json>
+Abre la tarea en Zoho Projects y copia los IDs del URL:
+
+```
+https://projects.zoho.com/portal/miportal#zp/projects/106599000032339072/tasks/.../106599000033129351
+                                                                ↑ project_id                ↑ task_id
 ```
 
-> `ZOHO_REFRESH_TOKEN` reemplaza a `tokens.json` en entornos sin sistema de archivos persistente. Lo encuentras en tu `tokens.json` local bajo la clave `refresh_token`.
+### Paso 2 — obtener el refresh token
 
-### Configuración en Railway
+Corre el flujo de autenticación local una vez (`npm run setup`) y luego copia el valor de `refresh_token` de tu `tokens.json`:
 
-Railway ejecuta cada cron service como un contenedor que corre el comando y termina. Se necesitan **dos servicios** en el mismo proyecto:
+```bash
+cat tokens.json | python3 -c "import sys,json; print(json.load(sys.stdin)['refresh_token'])"
+```
+
+### Paso 3 — elegir dónde desplegar
+
+---
+
+#### Opción A — Railway *(recomendado, sin servidor propio)*
+
+Railway ejecuta cron services como contenedores que corren el comando y terminan. Se necesitan **dos servicios** dentro del mismo proyecto Railway.
+
+**Variables de entorno** (configurar en cada servicio):
+
+```env
+ZOHO_CLIENT_ID=tu_client_id
+ZOHO_CLIENT_SECRET=tu_client_secret
+ZOHO_PORTAL_NAME=tu_portal
+ZOHO_REFRESH_TOKEN=tu_refresh_token
+ZOHO_AUTO_TIMER_PROJECT_ID=id_numerico_del_proyecto
+ZOHO_AUTO_TIMER_TASK_ID=id_numerico_de_la_tarea
+TZ=America/Mexico_City
+```
 
 **Servicio 1 — iniciar timer**
 
@@ -186,7 +209,7 @@ Railway ejecuta cada cron service como un contenedor que corre el comando y term
 |---|---|
 | Tipo | Cron Job |
 | Comando | `node scripts/auto-timer.js start` |
-| Schedule | `0 8 * * 1-5` *(lunes a viernes 8am)* |
+| Schedule (UTC) | `0 13 * * 1-5` *(8am CDMX, verano UTC-5)* |
 
 **Servicio 2 — detener timer**
 
@@ -194,21 +217,71 @@ Railway ejecuta cada cron service como un contenedor que corre el comando y term
 |---|---|
 | Tipo | Cron Job |
 | Comando | `node scripts/auto-timer.js stop` |
-| Schedule | `0 17 * * 1-5` *(lunes a viernes 5pm)* |
+| Schedule (UTC) | `0 22 * * 1-5` *(5pm CDMX, verano UTC-5)* |
 
-**Variables de entorno en Railway** (en cada servicio):
+> **Timezone:** Railway siempre interpreta el schedule en UTC. Ajusta la hora según tu zona:
+>
+> | Zona | UTC offset | 8am en UTC | 5pm en UTC |
+> |---|---|---|---|
+> | CDMX verano (CDT) | UTC-5 | `0 13 * * 1-5` | `0 22 * * 1-5` |
+> | CDMX invierno (CST) | UTC-6 | `0 14 * * 1-5` | `0 23 * * 1-5` |
+> | Colombia / Perú | UTC-5 | `0 13 * * 1-5` | `0 22 * * 1-5` |
+> | Argentina | UTC-3 | `0 11 * * 1-5` | `0 20 * * 1-5` |
+> | España (verano) | UTC+2 | `0 6 * * 1-5` | `0 15 * * 1-5` |
 
+Para verificar que funciona, usa el botón **"Run Now"** en cada servicio y revisa los logs. Deberías ver `Timer iniciado` o `Timer detenido`.
+
+---
+
+#### Opción B — VPS / servidor Linux *(Ubuntu, Debian, etc.)*
+
+No necesitas `tokens.json` si defines `ZOHO_REFRESH_TOKEN` en el entorno. Clona el repo, instala dependencias y registra los crons:
+
+```bash
+git clone https://github.com/tu-org/zoho-projects-mcp.git /opt/zoho-mcp
+cd /opt/zoho-mcp
+npm install
+cp .env.example .env   # edita con tus valores, incluyendo ZOHO_AUTO_TIMER_* y ZOHO_REFRESH_TOKEN
 ```
-ZOHO_CLIENT_ID
-ZOHO_CLIENT_SECRET
-ZOHO_PORTAL_NAME
-ZOHO_REFRESH_TOKEN
-ZOHO_AUTO_TIMER_PROJECT_ID
-ZOHO_AUTO_TIMER_TASK_ID
-TZ=America/Mexico_City
+
+Edita el crontab:
+
+```bash
+crontab -e
 ```
 
-> Railway corre en UTC. Definir `TZ=America/Mexico_City` hace que los logs muestren la hora local correcta, pero el schedule del cron **siempre se interpreta en UTC**. Para 8am Ciudad de México (UTC-6) usa `0 14 * * 1-5`; para 5pm (UTC-6) usa `0 23 * * 1-5`. Si el horario de verano (UTC-5) es relevante, ajusta una hora.
+Agrega las dos líneas (ajusta la hora a tu zona horaria del servidor):
+
+```cron
+0 8 * * 1-5 cd /opt/zoho-mcp && node scripts/auto-timer.js start >> /var/log/zoho-timer.log 2>&1
+0 17 * * 1-5 cd /opt/zoho-mcp && node scripts/auto-timer.js stop >> /var/log/zoho-timer.log 2>&1
+```
+
+> Si el servidor corre en UTC, convierte las horas igual que en Railway. Verifica la zona del servidor con `timedatectl` y cámbiala si quieres usar hora local: `sudo timedatectl set-timezone America/Mexico_City`.
+
+---
+
+#### Opción C — Mac o Linux local *(la máquina debe estar encendida a esas horas)*
+
+Requiere `tokens.json` generado por `npm run setup`. Registra los crons con `crontab -e`:
+
+```cron
+0 8 * * 1-5 cd /ruta/al/proyecto && node scripts/auto-timer.js start >> /tmp/zoho-timer.log 2>&1
+0 17 * * 1-5 cd /ruta/al/proyecto && node scripts/auto-timer.js stop >> /tmp/zoho-timer.log 2>&1
+```
+
+En Mac, si la máquina duerme exactamente a esa hora el cron puede no dispararse. Una alternativa más robusta en Mac es usar `launchd` en lugar de `crontab`.
+
+---
+
+### Solución de problemas
+
+| Síntoma | Posible causa |
+|---|---|
+| `ZOHO_AUTO_TIMER_PROJECT_ID y ZOHO_AUTO_TIMER_TASK_ID son requeridos` | Faltan esas variables de entorno |
+| `No hay timer activo` al hacer stop | El timer no se inició antes (revisa logs del servicio start) |
+| `Error 401` | El refresh token expiró — corre `npm run setup` localmente y actualiza `ZOHO_REFRESH_TOKEN` |
+| Timer descartado (< 30 segundos) | Normal si se prueba con "Run Now" dos veces seguidas muy rápido |
 
 ## Arquitectura
 
@@ -219,6 +292,7 @@ src/
 └── setup-auth.js    # Flujo OAuth2 de una sola vez
 
 scripts/
+├── auto-timer.js    # Cron — inicia/detiene timer automáticamente (Railway, VPS o local)
 ├── my-open-tasks.js # Utilidad CLI — tareas abiertas del equipo en todos los proyectos
 └── my-mentions.js   # Utilidad CLI — comentarios que te mencionan, con filtro de fechas
 ```
