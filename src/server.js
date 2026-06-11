@@ -8,6 +8,7 @@ const PORTAL_NAME = process.env.ZOHO_PORTAL_NAME || "sigobproyectos";
 const server = new McpServer({ name: "Zoho Projects", version: "1.0.0" });
 
 const text = (str) => ({ content: [{ type: "text", text: String(str) }] });
+const toZpuid = (id) => (id != null ? String(id).trim() : "") || undefined;
 
 let PORTAL = PORTAL_NAME;
 
@@ -113,7 +114,7 @@ server.tool(
   },
   async ({ project_id, name, description, priority, person_responsible, start_date, due_date, tasklist_id, custom_fields }) => {
     const resolvedId = await resolveProjectId(project_id);
-    const responsible = person_responsible || process.env.ZOHO_MY_USER_ID;
+    const responsible = toZpuid(person_responsible || process.env.ZOHO_MY_USER_ID);
 
     const body = { name };
     if (description) body.description = description;
@@ -125,11 +126,13 @@ server.tool(
     if (tasklist_id) body.tasklist = { id: tasklist_id };
     if (custom_fields) {
       for (const [key, val] of Object.entries(custom_fields)) {
-        try { body[key] = JSON.parse(val); } catch { body[key] = val; }
+        // Quote large integers in zpuid fields before parsing to preserve 18-digit precision
+        const safe = val.replace(/"zpuid"\s*:\s*(\d{15,})/g, '"zpuid":"$1"');
+        try { body[key] = JSON.parse(safe); } catch { body[key] = val; }
       }
     }
 
-    const myId = process.env.ZOHO_MY_USER_ID;
+    const myId = toZpuid(process.env.ZOHO_MY_USER_ID);
     if (myId) {
       if (!body.revisor)              body.revisor              = { zpuid: myId };
       if (!body.revisor_de_desarrollo) body.revisor_de_desarrollo = { zpuid: myId };
@@ -161,7 +164,7 @@ server.tool(
     if (name)              body.name = name;
     if (status)            body.status = /^\d+$/.test(status) ? { id: status } : { name: status };
     if (priority)          body.priority = priority;
-    if (person_responsible)body.owners_and_work = { owners: [{ zpuid: person_responsible }] };
+    if (person_responsible)body.owners_and_work = { owners: [{ zpuid: toZpuid(person_responsible) }] };
     if (due_date)          body.end_date = toISODate(due_date);
 
     if (!Object.keys(body).length) return text("No se proporcionaron campos para actualizar.");
@@ -283,13 +286,15 @@ server.tool(
   },
   async ({ project_id }) => {
     const resolvedId = await resolveProjectId(project_id);
-    const myUserId = process.env.ZOHO_MY_USER_ID;
+    const myUserId = toZpuid(process.env.ZOHO_MY_USER_ID);
     if (!myUserId) return text("ZOHO_MY_USER_ID no está definido en .env");
     const r = await zohoClient.get(
       `/portal/${PORTAL}/projects/${resolvedId}/users/${myUserId}/fields/permissions`,
       { modules: "tasks" }
     );
-    const fields = Array.isArray(r) ? r : (r[myUserId] || []);
+    const fields = Array.isArray(r)
+      ? r
+      : (r[myUserId] ?? Object.values(r).find(v => Array.isArray(v)) ?? []);
     if (!fields.length) return text(`Sin campos. Respuesta cruda: ${JSON.stringify(r).slice(0, 500)}`);
     return text(fields.map(f =>
       `api_name: ${f.api_name || "N/A"} | label: ${f.display_name || "N/A"} | tipo: ${f.field_type || "N/A"} | oculto: ${f.is_hidden ?? "N/A"}`
