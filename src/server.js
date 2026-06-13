@@ -40,10 +40,26 @@ async function resolveProjectId(nameOrId) {
   return match.id;
 }
 
+// Devuelve el conjunto de zpuids de los miembros de un proyecto, para validar que los
+// campos de usuario (propietario, revisores) apunten a alguien que sí pertenece al proyecto.
+async function fetchProjectMembers(projectId) {
+  const r = await zohoClient.get(`/portal/${PORTAL}/projects/${projectId}/users`);
+  return new Set((r.users || []).map(u => toZpuid(u.zpuid || u.id)).filter(Boolean));
+}
+
 function toISODate(mmddyyyy) {
   if (!mmddyyyy) return undefined;
   const [m, d, y] = mmddyyyy.split("-");
   return `${y}-${m}-${d}T00:00:00.000Z`;
+}
+
+// Convierte horas decimales o enteras (ej: "8", "1.5") al formato "H:MM" que espera Zoho
+function toHHMM(hours) {
+  const val = parseFloat(hours);
+  const total = Math.round((Number.isFinite(val) ? val : 8) * 60);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${h}:${String(m).padStart(2, "0")}`;
 }
 
 function toHtmlDescription(text) {
@@ -81,6 +97,27 @@ function toHtmlDescription(text) {
 
   flushList();
   return out.join("");
+}
+
+// Crea la tarea reintentando sin los campos de usuario que Zoho rechaza por no ser
+// miembros del proyecto (ej: revisor/revisor_de_desarrollo apuntando a un no-miembro).
+// Sin esto, un solo usuario inválido aborta toda la creación con un 400.
+async function postTaskResilient(path, body) {
+  const stripped = [];
+  let t;
+  for (let i = 0; i < 5; i++) {
+    t = await zohoClient.post(path, body);
+    if (t?.id) break;
+    const details = t?.error?.details;
+    if (!Array.isArray(details)) break;
+    const toStrip = details
+      .filter(d => /not available in the project/i.test(d.message || ""))
+      .map(d => d.field_name)
+      .filter(f => f && f in body);
+    if (!toStrip.length) break;
+    for (const f of toStrip) { delete body[f]; stripped.push(f); }
+  }
+  return { t, stripped };
 }
 
 // ── list_projects ────────────────────────────────────────────────────────────
@@ -141,7 +178,7 @@ server.tool(
 // ── create_task ───────────────────────────────────────────────────────────────
 server.tool(
   "create_task",
-  "Crea una nueva tarea. Acepta nombre o ID de proyecto. Defaults automáticos si no se especifican: propietario=ZOHO_MY_USER_ID, revisor=ZOHO_MY_USER_ID, revisor_de_desarrollo=ZOHO_MY_USER_ID, work=8:00, tamaño=3.",
+  "Crea una nueva tarea. Acepta nombre o ID de proyecto. Defaults si no se especifican: propietario=ZOHO_MY_USER_ID, revisor=ZOHO_MY_USER_ID, revisor_de_desarrollo=ZOHO_MY_USER_ID, horas=8, tamaño=3. Los campos de usuario que no sean miembros del proyecto se omiten automáticamente en vez de hacer fallar la creación.",
   {
     project_id:         z.string().describe("ID numérico o nombre del proyecto (ej: 'sigob-sir-lite')"),
     name:               z.string().describe("Nombre de la tarea"),
@@ -150,17 +187,22 @@ server.tool(
     person_responsible: z.string().optional().describe("ID (zpuid) del usuario responsable (por defecto: ZOHO_MY_USER_ID del .env)"),
     start_date:         z.string().optional().describe("Fecha de inicio MM-DD-YYYY (requerida por Zoho; por defecto: hoy)"),
     due_date:           z.string().optional().describe("Fecha de vencimiento MM-DD-YYYY"),
+    estimated_hours:    z.string().optional().describe("Horas de trabajo estimadas (decimal, ej: '8' o '1.5'; por defecto: 8)"),
     tasklist_id:        z.string().optional().describe("ID de la lista de tareas"),
     custom_fields:      z.record(z.string()).optional().describe("Campos personalizados por api_name (ej: {cf_area_tecnica: 'Backend'})"),
   },
-  async ({ project_id, name, description, priority, person_responsible, start_date, due_date, tasklist_id, custom_fields }) => {
+  async ({ project_id, name, description, priority, person_responsible, start_date, due_date, estimated_hours, tasklist_id, custom_fields }) => {
     const resolvedId = await resolveProjectId(project_id);
     const responsible = toZpuid(person_responsible || process.env.ZOHO_MY_USER_ID);
+    const workHHMM = toHHMM(estimated_hours ?? "8");
 
     const body = { name };
     if (description) body.description = toHtmlDescription(description);
     if (priority)    body.priority = priority;
-    if (responsible) body.owners_and_work = { owners: [{ zpuid: responsible }] };
+    // En V3 las horas de trabajo viven dentro de owners_and_work (total_work + work_values
+    // por owner); el campo top-level "work" se ignora silenciosamente.
+    body.owners_and_work = { work_type: "standard", total_work: workHHMM, unit: "hours", copy_task_duration: false };
+    if (responsible) body.owners_and_work.owners = [{ zpuid: responsible, work_values: workHHMM }];
     const effectiveStartDate = start_date || new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }).replace(/\//g, "-");
     body.start_date = toISODate(effectiveStartDate);
     if (due_date)    body.end_date = toISODate(due_date);
@@ -173,16 +215,28 @@ server.tool(
       }
     }
 
+    // El revisor por defecto debe ser miembro del proyecto. revisor (Revisor operaciones)
+    // suele ser obligatorio, así que no basta con omitirlo: usamos ZOHO_MY_USER_ID si es
+    // miembro, y si no, caemos al propietario de la tarea (que sí asignamos como owner).
     const myId = toZpuid(process.env.ZOHO_MY_USER_ID);
-    if (myId) {
-      if (!body.revisor)              body.revisor              = { zpuid: myId };
-      if (!body.revisor_de_desarrollo) body.revisor_de_desarrollo = { zpuid: myId };
+    if (!body.revisor || !body.revisor_de_desarrollo) {
+      const members = await fetchProjectMembers(resolvedId);
+      const defaultReviewer =
+        (myId && members.has(myId)) ? myId :
+        (responsible && members.has(responsible)) ? responsible : undefined;
+      if (defaultReviewer) {
+        if (!body.revisor)               body.revisor               = { zpuid: defaultReviewer };
+        if (!body.revisor_de_desarrollo) body.revisor_de_desarrollo = { zpuid: defaultReviewer };
+      }
     }
-    if (!body.work)                              body.work = "8:00";
     if (!body.tamano_de_tarea_1_facil_5_dificil) body.tamano_de_tarea_1_facil_5_dificil = "3";
 
-    const t = await zohoClient.post(`/portal/${PORTAL}/projects/${resolvedId}/tasks`, body);
-    if (t?.id) return text(`Tarea creada.\nID: ${t.id} | Nombre: ${t.name}`);
+    const { t, stripped } = await postTaskResilient(`/portal/${PORTAL}/projects/${resolvedId}/tasks`, body);
+    if (t?.id) {
+      let msg = `Tarea creada.\nID: ${t.id} | Nombre: ${t.name}`;
+      if (stripped.length) msg += `\nNota: se omitieron campos que apuntaban a usuarios no miembros del proyecto: ${stripped.join(", ")}`;
+      return text(msg);
+    }
     return text(`Respuesta: ${JSON.stringify(t)}`);
   }
 );

@@ -71,7 +71,11 @@ class ZohoClient {
       options.headers.Authorization = `Zoho-oauthtoken ${this.accessToken}`;
       res = await fetch(url, options);
     }
-    return res.json();
+    // Algunas respuestas (ej: DELETE) llegan con body vacío; res.json() reventaría
+    // con "Unexpected end of JSON input". Leemos como texto y parseamos sólo si hay contenido.
+    const raw = await res.text();
+    if (!raw) return {};
+    try { return JSON.parse(raw); } catch { return raw; }
   }
 
   get(path, params = {}) {
