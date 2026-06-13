@@ -21,7 +21,7 @@ No hay paso de compilación ni pruebas — el proyecto corre directamente como m
 
 Tres archivos fuente con separación clara de responsabilidades:
 
-- **`src/server.js`** — Punto de entrada del servidor MCP. Al arrancar llama a `GET /api/v3/portals` para resolver el nombre del portal (`ZOHO_PORTAL_NAME`) a su ID numérico requerido por V3, y lo almacena en la variable `PORTAL`. Registra las 11 herramientas con esquemas de parámetros Zod y delega cada una a `zohoClient`.
+- **`src/server.js`** — Punto de entrada del servidor MCP. Al arrancar llama a `GET /api/v3/portals` para resolver el nombre del portal (`ZOHO_PORTAL_NAME`) a su ID numérico requerido por V3, y lo almacena en la variable `PORTAL`. Registra las 12 herramientas con esquemas de parámetros Zod y delega cada una a `zohoClient`.
 - **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/api/v3`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/json`.
 - **`src/setup-auth.js`** — Configuración OAuth2 de una sola vez: abre la URL de autorización, recibe el código via servidor HTTP local en el puerto 8080, lo intercambia por tokens y escribe `tokens.json`.
 
@@ -66,7 +66,11 @@ El refresco de tokens es transparente: `zoho-client.js` reintenta cualquier 401 
 
 ## Herramientas MCP Expuestas
 
-`list_projects`, `list_tasks`, `get_task`, `create_task`, `update_task`, `list_comments`, `add_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `list_comments`, `add_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+
+### Subtareas (`create_subtask`)
+
+Las subtareas **solo existen en la API v2** de Zoho (`POST /restapi/portal/{nombre}/projects/{id}/tasks/{id_padre}/subtasks/`, form-urlencoded); no hay endpoint en v3. Por eso `create_subtask` usa un enfoque híbrido: crea la subtarea por v2 (el padre se indica en la URL) y luego completa los campos personalizados (revisor, área, horas, etc.) con un `PATCH` v3, reutilizando `buildTaskV3Fields`. La subtarea hereda la lista de tareas del padre. `zoho-client.js` expone `postFormV2` para este caso.
 
 ### Creación rápida de tareas (`create_task`)
 

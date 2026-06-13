@@ -86,6 +86,28 @@ class ZohoClient {
   post(path, body)  { return this._request("POST",   path, body); }
   patch(path, body) { return this._request("PATCH",  path, body); }
   delete(path)      { return this._request("DELETE", path); }
+
+  // POST form-urlencoded a la API v2 (/restapi). Necesario para endpoints que solo existen
+  // en v2, como la creación de subtareas. Refresca el token en 401 igual que _request.
+  async postFormV2(path, body) {
+    const url = `https://projectsapi.zoho.com/restapi${path}`;
+    const send = () => fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Zoho-oauthtoken ${this.accessToken}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams(body).toString(),
+    });
+    let res = await send();
+    if (res.status === 401) {
+      await this._refresh();
+      res = await send();
+    }
+    const raw = await res.text();
+    if (!raw) return {};
+    try { return JSON.parse(raw); } catch { return raw; }
+  }
 }
 
 export const zohoClient = new ZohoClient();
