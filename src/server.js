@@ -99,14 +99,55 @@ function toHtmlDescription(text) {
   return out.join("");
 }
 
-// Crea la tarea reintentando sin los campos de usuario que Zoho rechaza por no ser
-// miembros del proyecto (ej: revisor/revisor_de_desarrollo apuntando a un no-miembro).
-// Sin esto, un solo usuario inválido aborta toda la creación con un 400.
-async function postTaskResilient(path, body) {
+// Construye los campos v3 compartidos por create_task y create_subtask: propietario y horas
+// (dentro de owners_and_work), revisores con default validado por membresía, tamaño y campos
+// personalizados. No incluye name/start_date/tasklist; cada llamador los agrega.
+async function buildTaskV3Fields({ resolvedId, person_responsible, estimated_hours, priority, description, due_date, custom_fields }) {
+  const responsible = toZpuid(person_responsible || process.env.ZOHO_MY_USER_ID);
+  const workHHMM = toHHMM(estimated_hours ?? "8");
+
+  const body = {};
+  if (description) body.description = toHtmlDescription(description);
+  if (priority)    body.priority = priority;
+  // En V3 las horas viven dentro de owners_and_work (total_work + work_values por owner);
+  // el campo top-level "work" se ignora silenciosamente.
+  body.owners_and_work = { work_type: "standard", total_work: workHHMM, unit: "hours", copy_task_duration: false };
+  if (responsible) body.owners_and_work.owners = [{ zpuid: responsible, work_values: workHHMM }];
+  if (due_date)    body.end_date = toISODate(due_date);
+  if (custom_fields) {
+    for (const [key, val] of Object.entries(custom_fields)) {
+      // Quote large integers in zpuid fields before parsing to preserve 18-digit precision
+      const safe = val.replace(/"zpuid"\s*:\s*(\d{15,})/g, '"zpuid":"$1"');
+      try { body[key] = JSON.parse(safe); } catch { body[key] = val; }
+    }
+  }
+
+  // El revisor por defecto debe ser miembro del proyecto. revisor (Revisor operaciones) suele
+  // ser obligatorio, así que no basta omitirlo: usamos ZOHO_MY_USER_ID si es miembro, y si no,
+  // caemos al propietario de la tarea (que sí asignamos como owner).
+  const myId = toZpuid(process.env.ZOHO_MY_USER_ID);
+  if (!body.revisor || !body.revisor_de_desarrollo) {
+    const members = await fetchProjectMembers(resolvedId);
+    const defaultReviewer =
+      (myId && members.has(myId)) ? myId :
+      (responsible && members.has(responsible)) ? responsible : undefined;
+    if (defaultReviewer) {
+      if (!body.revisor)               body.revisor               = { zpuid: defaultReviewer };
+      if (!body.revisor_de_desarrollo) body.revisor_de_desarrollo = { zpuid: defaultReviewer };
+    }
+  }
+  if (!body.tamano_de_tarea_1_facil_5_dificil) body.tamano_de_tarea_1_facil_5_dificil = "3";
+  return body;
+}
+
+// Envía la tarea reintentando sin los campos de usuario que Zoho rechaza por no ser miembros
+// del proyecto (ej: revisor/revisor_de_desarrollo apuntando a un no-miembro). Sin esto, un
+// solo usuario inválido aborta toda la operación con un 400. method: "post" (crear) o "patch".
+async function sendTaskResilient(method, path, body) {
   const stripped = [];
   let t;
   for (let i = 0; i < 5; i++) {
-    t = await zohoClient.post(path, body);
+    t = await zohoClient[method](path, body);
     if (t?.id) break;
     const details = t?.error?.details;
     if (!Array.isArray(details)) break;
@@ -193,51 +234,57 @@ server.tool(
   },
   async ({ project_id, name, description, priority, person_responsible, start_date, due_date, estimated_hours, tasklist_id, custom_fields }) => {
     const resolvedId = await resolveProjectId(project_id);
-    const responsible = toZpuid(person_responsible || process.env.ZOHO_MY_USER_ID);
-    const workHHMM = toHHMM(estimated_hours ?? "8");
-
-    const body = { name };
-    if (description) body.description = toHtmlDescription(description);
-    if (priority)    body.priority = priority;
-    // En V3 las horas de trabajo viven dentro de owners_and_work (total_work + work_values
-    // por owner); el campo top-level "work" se ignora silenciosamente.
-    body.owners_and_work = { work_type: "standard", total_work: workHHMM, unit: "hours", copy_task_duration: false };
-    if (responsible) body.owners_and_work.owners = [{ zpuid: responsible, work_values: workHHMM }];
+    const body = await buildTaskV3Fields({ resolvedId, person_responsible, estimated_hours, priority, description, due_date, custom_fields });
+    body.name = name;
     const effectiveStartDate = start_date || new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }).replace(/\//g, "-");
     body.start_date = toISODate(effectiveStartDate);
-    if (due_date)    body.end_date = toISODate(due_date);
     if (tasklist_id) body.tasklist = { id: tasklist_id };
-    if (custom_fields) {
-      for (const [key, val] of Object.entries(custom_fields)) {
-        // Quote large integers in zpuid fields before parsing to preserve 18-digit precision
-        const safe = val.replace(/"zpuid"\s*:\s*(\d{15,})/g, '"zpuid":"$1"');
-        try { body[key] = JSON.parse(safe); } catch { body[key] = val; }
-      }
-    }
 
-    // El revisor por defecto debe ser miembro del proyecto. revisor (Revisor operaciones)
-    // suele ser obligatorio, así que no basta con omitirlo: usamos ZOHO_MY_USER_ID si es
-    // miembro, y si no, caemos al propietario de la tarea (que sí asignamos como owner).
-    const myId = toZpuid(process.env.ZOHO_MY_USER_ID);
-    if (!body.revisor || !body.revisor_de_desarrollo) {
-      const members = await fetchProjectMembers(resolvedId);
-      const defaultReviewer =
-        (myId && members.has(myId)) ? myId :
-        (responsible && members.has(responsible)) ? responsible : undefined;
-      if (defaultReviewer) {
-        if (!body.revisor)               body.revisor               = { zpuid: defaultReviewer };
-        if (!body.revisor_de_desarrollo) body.revisor_de_desarrollo = { zpuid: defaultReviewer };
-      }
-    }
-    if (!body.tamano_de_tarea_1_facil_5_dificil) body.tamano_de_tarea_1_facil_5_dificil = "3";
-
-    const { t, stripped } = await postTaskResilient(`/portal/${PORTAL}/projects/${resolvedId}/tasks`, body);
+    const { t, stripped } = await sendTaskResilient("post", `/portal/${PORTAL}/projects/${resolvedId}/tasks`, body);
     if (t?.id) {
       let msg = `Tarea creada.\nID: ${t.id} | Nombre: ${t.name}`;
       if (stripped.length) msg += `\nNota: se omitieron campos que apuntaban a usuarios no miembros del proyecto: ${stripped.join(", ")}`;
       return text(msg);
     }
     return text(`Respuesta: ${JSON.stringify(t)}`);
+  }
+);
+
+// ── create_subtask ────────────────────────────────────────────────────────────
+server.tool(
+  "create_subtask",
+  "Crea una subtarea bajo una tarea padre. Las subtareas solo existen en la API v2 de Zoho (el padre va en la URL), así que se crea por v2 y luego se completan los campos personalizados por v3. Mismos defaults que create_task (revisor, horas=8, tamaño=3). Hereda la lista del padre.",
+  {
+    project_id:         z.string().describe("ID numérico o nombre del proyecto"),
+    parent_task_id:     z.string().describe("ID de la tarea padre"),
+    name:               z.string().describe("Nombre de la subtarea"),
+    description:        z.string().optional().describe("Descripción"),
+    priority:           z.enum(["high", "medium", "low", "none"]).optional(),
+    person_responsible: z.string().optional().describe("ID (zpuid) del responsable (por defecto: ZOHO_MY_USER_ID del .env)"),
+    due_date:           z.string().optional().describe("Fecha de vencimiento MM-DD-YYYY"),
+    estimated_hours:    z.string().optional().describe("Horas de trabajo estimadas (decimal, ej: '8' o '1.5'; por defecto: 8)"),
+    custom_fields:      z.record(z.string()).optional().describe("Campos personalizados por api_name (ej: {area_tecnica: 'BACKEND'})"),
+  },
+  async ({ project_id, parent_task_id, name, description, priority, person_responsible, due_date, estimated_hours, custom_fields }) => {
+    const resolvedId = await resolveProjectId(project_id);
+
+    // 1) Crear la subtarea por v2: es el único endpoint que la vincula al padre (vía la URL).
+    const v2 = await zohoClient.postFormV2(
+      `/portal/${PORTAL_NAME}/projects/${resolvedId}/tasks/${parent_task_id}/subtasks/`,
+      { name }
+    );
+    const sub = (v2?.tasks || [])[0];
+    if (!sub) return text(`No se pudo crear la subtarea. Respuesta: ${JSON.stringify(v2)}`);
+    const subId = sub.id_string || String(sub.id);
+
+    // 2) Completar los campos personalizados (revisor, horas, área, etc.) por v3 PATCH.
+    const fields = await buildTaskV3Fields({ resolvedId, person_responsible, estimated_hours, priority, description, due_date, custom_fields });
+    const { t, stripped } = await sendTaskResilient("patch", `/portal/${PORTAL}/projects/${resolvedId}/tasks/${subId}`, fields);
+
+    let msg = `Subtarea creada.\nID: ${subId} | Nombre: ${sub.name} | Padre: ${parent_task_id}`;
+    if (stripped.length) msg += `\nNota: se omitieron campos que apuntaban a usuarios no miembros del proyecto: ${stripped.join(", ")}`;
+    if (!t?.id) msg += `\nAviso: la subtarea se creó pero no se pudieron completar todos los campos: ${JSON.stringify(t?.error || t).slice(0, 200)}`;
+    return text(msg);
   }
 );
 
