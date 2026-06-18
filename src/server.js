@@ -627,6 +627,80 @@ server.tool(
   }
 );
 
+// ── sync_task_hours ───────────────────────────────────────────────────────────
+server.tool(
+  "sync_task_hours",
+  "Sincroniza las horas asignadas de las tareas de un proyecto con el tiempo real registrado en los time logs. Para cada tarea que tenga tiempo registrado, actualiza owners_and_work.total_work al total acumulado de horas logueadas. Útil para que las horas del equipo reflejen el trabajo real. Opcionalmente filtra por usuario con user_zpuid para sincronizar solo las tareas de una persona.",
+  {
+    project_id:  z.string().describe("ID numérico del proyecto"),
+    user_zpuid:  z.string().optional().describe("zpuid del usuario para sincronizar solo sus tareas (obtenible con list_users). Sin este param sincroniza todas las tareas del proyecto."),
+    start_date:  z.string().optional().describe("Fecha inicio YYYY-MM-DD para considerar logs desde esa fecha (por defecto: hace 1 año)"),
+    end_date:    z.string().optional().describe("Fecha fin YYYY-MM-DD (por defecto: hoy)"),
+  },
+  async ({ project_id, user_zpuid, start_date, end_date }) => {
+    const modulesRes = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/modules`);
+    const taskModule = (modulesRes.modules || []).find(m => m.module_name === "Task");
+    if (!taskModule) return text("No se encontró el módulo de tareas en este proyecto.");
+
+    const now = new Date();
+    const sd = start_date || new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString().slice(0, 10);
+    const ed = end_date   || now.toISOString().slice(0, 10);
+
+    const baseParams = {
+      view_type:  "customdate",
+      start_date: sd,
+      end_date:   ed,
+      module:     JSON.stringify({ id: taskModule.module_id, type: "task" }),
+      per_page:   200,
+    };
+    if (user_zpuid) {
+      baseParams.filter = JSON.stringify({
+        criteria: [{ field_name: "user", criteria_condition: "is", value: [user_zpuid] }],
+        pattern: "1",
+      });
+    }
+
+    // Paginar manualmente — la respuesta anida log_details dentro de time_logs por día
+    const parseMinutes = (hhmm) => {
+      const [h, m] = String(hhmm).split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+
+    const taskMinutes = new Map(); // task_id -> total minutos
+    let page = 1;
+    for (;;) {
+      const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/timelogs`, { ...baseParams, page });
+      for (const day of r.time_logs || []) {
+        for (const log of day.log_details || []) {
+          const tid = log.module_detail?.id;
+          if (!tid) continue;
+          taskMinutes.set(tid, (taskMinutes.get(tid) || 0) + parseMinutes(log.log_hour));
+        }
+      }
+      const hasNext = r.page_info?.has_next_page;
+      if (hasNext !== true && hasNext !== "true") break;
+      page++;
+    }
+
+    if (!taskMinutes.size) return text("No se encontraron registros de tiempo en ese rango.");
+
+    // Actualizar cada tarea con el total acumulado
+    const results = [];
+    for (const [taskId, minutes] of taskMinutes) {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      const totalWork = `${h}:${String(m).padStart(2, "0")}`;
+      const t = await zohoClient.patch(
+        `/portal/${PORTAL}/projects/${project_id}/tasks/${taskId}`,
+        { owners_and_work: { total_work: totalWork, unit: "hours" } }
+      );
+      results.push(`${t?.name || taskId}: ${totalWork}${t?.id ? "" : " (error)"}`);
+    }
+
+    return text(`Sincronizadas ${results.length} tarea(s):\n${results.join("\n")}`);
+  }
+);
+
 // ── start server ──────────────────────────────────────────────────────────────
 await initPortalId();
 const transport = new StdioServerTransport();

@@ -125,7 +125,7 @@ El ID es el mismo para todas las tareas del portal que tengan ese estado — sol
 
 ## Herramientas MCP Expuestas
 
-`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`, `get_task_attachments`, `disassociate_attachment`, `get_time_logs`, `add_time_log`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`, `get_task_attachments`, `disassociate_attachment`, `get_time_logs`, `add_time_log`, `sync_task_hours`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
 
 ### `list_tasks`
 
@@ -162,6 +162,15 @@ La API V3 soporta crear subtareas via `parental_info: { parent_task_id }` en el 
 - `start_date` es **requerida por la API de Zoho**; si no se proporciona, el servidor usa la fecha de hoy automáticamente
 - Para campos personalizados usar `list_task_fields` para obtener los `api_name` y pasarlos en `custom_fields` como `{"cf_area_tecnica": "Backend"}`
 - `description` se convierte automáticamente a HTML antes de enviarse a Zoho (ver abajo); si ya contiene HTML se envía tal cual
+
+### `sync_task_hours`
+
+Recorre todos los time logs de un proyecto en un rango de fechas, acumula las horas por tarea y actualiza `owners_and_work.total_work` en cada una. Útil para que las horas asignadas reflejen el trabajo real del equipo.
+
+- Sin `user_zpuid`: sincroniza todas las tareas que tengan tiempo registrado en el proyecto.
+- Con `user_zpuid`: solo las tareas donde ese usuario haya logueado tiempo.
+- Rango por defecto: último año hasta hoy.
+- Las horas acumuladas se suman de todos los `log_hour` del período, sin importar quién los registró.
 
 ### Registros de tiempo: timer vs manual
 
