@@ -101,7 +101,25 @@ params.filter = JSON.stringify({
 });
 ```
 
-**Importante:** los IDs de estado (`value: [<id>]`) varían por portal. Para obtenerlos, hacer un `get_task` de cualquier tarea y leer `status.id`. El campo `is_completed: true/false` en la respuesta de cada tarea es portable y no depende de IDs.
+**Importante:** los IDs de estado (`value: [<id>]`) varían por portal. El campo `is_completed: true/false` en la respuesta de cada tarea es portable y no depende de IDs.
+
+### Cómo obtener el ID numérico de cualquier estado
+
+Los nombres de estado ("Cerrada", "En proceso", "Pruebas internas", etc.) no se pueden usar directamente en filtros ni en `update_task` — la API requiere el ID numérico. El patrón para obtenerlo:
+
+1. Buscar con `list_tasks` una tarea que **ya tenga** el estado deseado (filtrar en memoria por `status.name`).
+2. Llamar a `get_task` con el ID de esa tarea.
+3. Leer el campo **Estado** de la respuesta: `Cerrada (id: 106599000XXXXXXX, cerrado: true)`.
+4. Usar ese ID en `update_task` → `status: "<id>"` o en filtros → `value: [<id>]`.
+
+El ID es el mismo para todas las tareas del portal que tengan ese estado — solo hay que resolverlo una vez por sesión.
+
+```
+# Ejemplo: cerrar una tarea cuando no se conoce el ID de "Cerrada"
+1. list_tasks project_id=X  →  buscar en memoria una tarea con status.name == "Cerrada"
+2. get_task project_id=X task_id=<esa tarea>  →  leer "Estado: Cerrada (id: 106599000035000001, ...)"
+3. update_task project_id=X task_id=<tarea objetivo> status="106599000035000001"
+```
 
 `sort_by` soporta: `id`, `name`, `start_date`, `end_date`, `completion_percentage`, `created_time`, `last_modified_time`, `created_by`, `is_completed`. Formato: `ASC(campo)` o `DESC(campo)`.
 

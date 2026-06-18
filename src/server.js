@@ -174,7 +174,7 @@ server.tool("list_projects", "Lista todos los proyectos del portal. Devuelve ID 
 // ── list_tasks ────────────────────────────────────────────────────────────────
 server.tool(
   "list_tasks",
-  "Lista TODAS las tareas de un proyecto (paginación automática, sin límite de página). Cada tarea incluye: id, name, status.name, status.is_closed_type, is_completed, priority, owners_and_work.owners[]{name,email,zpuid}, end_date. IMPORTANTE: para filtrar por estado o por usuario, hazlo en memoria sobre el resultado — NO confíes en el parámetro 'status' para filtrar abiertos/cerrados porque usa IDs de estado que varían por portal. Usa 'is_completed === false' para tareas abiertas y 'owners_and_work.owners[].name' para filtrar por persona.",
+  "Lista TODAS las tareas de un proyecto (paginación automática, sin límite de página). Cada tarea incluye: id, name, status.name, status.is_closed_type, is_completed, priority, owners_and_work.owners[]{name,email,zpuid}, end_date. IMPORTANTE: filtra en memoria — NO uses el parámetro 'status' para filtrar por nombre de estado (los IDs varían por portal). Usa 'is_completed === false' para abiertas, 'status.is_closed_type === true' para cerradas, y 'owners_and_work.owners[].name' para filtrar por persona. Para obtener el ID numérico de un estado: (1) filtra en memoria por status.name para encontrar una tarea con ese estado, (2) llama a get_task con esa tarea y lee el id entre paréntesis en el campo Estado.",
   {
     project_id: z.string().describe("ID numérico del proyecto (obtenlo con list_projects)"),
     status: z.string().optional().describe('Filtro de API: "open", "closed", "overdue". Poco confiable porque depende de IDs de estado específicos del portal. Preferir filtrar en memoria por is_completed.'),
@@ -294,7 +294,7 @@ server.tool(
 // ── update_task ───────────────────────────────────────────────────────────────
 server.tool(
   "update_task",
-  "Actualiza campos de una tarea existente. Solo se envían los campos que se pasen; los demás quedan intactos. Para cerrar una tarea usa status='Closed' o el ID numérico del estado (obtenible con get_task). Para mover a otra lista pasa tasklist_id. La descripción se convierte a HTML automáticamente si se pasa texto plano.",
+  "Actualiza campos de una tarea existente. Solo se envían los campos que se pasen; los demás quedan intactos. Para mover a otra lista pasa tasklist_id. La descripción se convierte a HTML automáticamente si se pasa texto plano. IMPORTANTE sobre status: la API requiere el ID numérico del estado, no el nombre. Para obtenerlo: (1) llama a list_tasks y filtra en memoria por status.name para encontrar una tarea con el estado deseado, (2) llama a get_task con esa tarea — el campo Estado muestra 'NombreEstado (id: XXXXXXXXX, ...)' — usa ese ID numérico en este campo.",
   {
     project_id:            z.string().describe("ID numérico del proyecto"),
     task_id:               z.string().describe("ID numérico de la tarea"),
