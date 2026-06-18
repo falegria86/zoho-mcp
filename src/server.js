@@ -162,7 +162,7 @@ async function sendTaskResilient(method, path, body) {
 }
 
 // ── list_projects ────────────────────────────────────────────────────────────
-server.tool("list_projects", "Lista todos los proyectos del portal", {}, async () => {
+server.tool("list_projects", "Lista todos los proyectos del portal. Devuelve ID numérico, nombre y estado de cada proyecto. Usa el ID numérico (no el nombre) en las demás herramientas para evitar búsquedas adicionales; aunque list_tasks y list_users también aceptan nombre, el ID es más rápido y preciso.", {}, async () => {
   const r = await zohoClient.get(`/portal/${PORTAL}/projects`);
   const projects = Array.isArray(r) ? r : (r.projects || []);
   if (!projects.length) return text("No se encontraron proyectos.");
@@ -174,10 +174,10 @@ server.tool("list_projects", "Lista todos los proyectos del portal", {}, async (
 // ── list_tasks ────────────────────────────────────────────────────────────────
 server.tool(
   "list_tasks",
-  "Lista las tareas de un proyecto",
+  "Lista TODAS las tareas de un proyecto (paginación automática, sin límite de página). Cada tarea incluye: id, name, status.name, status.is_closed_type, is_completed, priority, owners_and_work.owners[]{name,email,zpuid}, end_date. IMPORTANTE: para filtrar por estado o por usuario, hazlo en memoria sobre el resultado — NO confíes en el parámetro 'status' para filtrar abiertos/cerrados porque usa IDs de estado que varían por portal. Usa 'is_completed === false' para tareas abiertas y 'owners_and_work.owners[].name' para filtrar por persona.",
   {
-    project_id: z.string().describe("ID del proyecto"),
-    status: z.string().optional().describe('Filtro: "open", "closed", "overdue"'),
+    project_id: z.string().describe("ID numérico del proyecto (obtenlo con list_projects)"),
+    status: z.string().optional().describe('Filtro de API: "open", "closed", "overdue". Poco confiable porque depende de IDs de estado específicos del portal. Preferir filtrar en memoria por is_completed.'),
   },
   async ({ project_id, status }) => {
     const params = {};
@@ -194,10 +194,10 @@ server.tool(
 // ── get_task ──────────────────────────────────────────────────────────────────
 server.tool(
   "get_task",
-  "Obtiene el detalle completo de una tarea",
+  "Obtiene el detalle completo de una tarea: nombre, estado, prioridad, responsable, fechas, descripción y campos personalizados. Útil para obtener el status.id real del portal antes de construir filtros, o para leer campos personalizados (cf_*) que list_tasks no expone.",
   {
-    project_id: z.string().describe("ID del proyecto"),
-    task_id: z.string().describe("ID de la tarea"),
+    project_id: z.string().describe("ID numérico del proyecto"),
+    task_id:    z.string().describe("ID numérico de la tarea"),
   },
   async ({ project_id, task_id }) => {
     const t = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}`);
@@ -290,16 +290,16 @@ server.tool(
 // ── update_task ───────────────────────────────────────────────────────────────
 server.tool(
   "update_task",
-  "Actualiza una tarea existente (estado, prioridad, responsable, etc.)",
+  "Actualiza campos de una tarea existente. Solo se envían los campos que se pasen; los demás quedan intactos. Para cerrar una tarea usa status='Closed' o el ID numérico del estado (obtenible con get_task). La descripción se convierte a HTML automáticamente si se pasa texto plano.",
   {
-    project_id:        z.string().describe("ID del proyecto"),
-    task_id:           z.string().describe("ID de la tarea"),
-    name:              z.string().optional().describe("Nuevo nombre"),
-    description:       z.string().optional().describe("Nueva descripción"),
-    status:            z.string().optional().describe("ID numérico del estado, o nombre: 'Open', 'Closed'"),
-    priority:          z.enum(["high", "medium", "low", "none"]).optional(),
-    person_responsible:z.string().optional().describe("zpuid del usuario responsable"),
-    due_date:          z.string().optional().describe("Fecha límite MM-DD-YYYY"),
+    project_id:         z.string().describe("ID numérico del proyecto"),
+    task_id:            z.string().describe("ID numérico de la tarea"),
+    name:               z.string().optional().describe("Nuevo nombre"),
+    description:        z.string().optional().describe("Nueva descripción (texto plano o HTML)"),
+    status:             z.string().optional().describe("Nombre del estado ('Open', 'Closed', 'En proceso', etc.) o ID numérico del estado"),
+    priority:           z.enum(["high", "medium", "low", "none"]).optional(),
+    person_responsible: z.string().optional().describe("zpuid del nuevo responsable (obtenible con list_users)"),
+    due_date:           z.string().optional().describe("Fecha límite MM-DD-YYYY"),
   },
   async ({ project_id, task_id, name, description, status, priority, person_responsible, due_date }) => {
     const body = {};
@@ -321,10 +321,10 @@ server.tool(
 // ── list_comments ─────────────────────────────────────────────────────────────
 server.tool(
   "list_comments",
-  "Lista los comentarios de una tarea",
+  "Lista todos los comentarios de una tarea en orden cronológico. Cada comentario incluye autor (created_by.name) y texto (comment).",
   {
-    project_id: z.string().describe("ID del proyecto"),
-    task_id:    z.string().describe("ID de la tarea"),
+    project_id: z.string().describe("ID numérico del proyecto"),
+    task_id:    z.string().describe("ID numérico de la tarea"),
   },
   async ({ project_id, task_id }) => {
     const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/comments`);
@@ -337,11 +337,11 @@ server.tool(
 // ── add_comment ───────────────────────────────────────────────────────────────
 server.tool(
   "add_comment",
-  "Agrega un comentario a una tarea",
+  "Agrega un comentario de texto a una tarea. Para mencionar a un usuario en el comentario usa el formato [~zpuid] (ej: [~106599000002000123]).",
   {
-    project_id: z.string().describe("ID del proyecto"),
-    task_id:    z.string().describe("ID de la tarea"),
-    content:    z.string().describe("Texto del comentario"),
+    project_id: z.string().describe("ID numérico del proyecto"),
+    task_id:    z.string().describe("ID numérico de la tarea"),
+    content:    z.string().describe("Texto del comentario. Usa [~zpuid] para mencionar usuarios."),
   },
   async ({ project_id, task_id, content }) => {
     const r = await zohoClient.post(
@@ -356,9 +356,9 @@ server.tool(
 // ── list_users ────────────────────────────────────────────────────────────────
 server.tool(
   "list_users",
-  "Lista los usuarios de un proyecto",
+  "Lista los miembros de un proyecto con su zpuid, nombre, email y rol. El zpuid es el identificador que debes usar en person_responsible (create_task/update_task) y en menciones de comentarios ([~zpuid]). Solo usuarios que pertenecen al proyecto pueden ser asignados como responsables.",
   {
-    project_id: z.string().describe("ID del proyecto"),
+    project_id: z.string().describe("ID numérico o nombre del proyecto"),
   },
   async ({ project_id }) => {
     const resolvedId = await resolveProjectId(project_id);
@@ -374,11 +374,11 @@ server.tool(
 // ── start_timer ───────────────────────────────────────────────────────────────
 server.tool(
   "start_timer",
-  "Inicia el timer de seguimiento de tiempo en una tarea",
+  "Inicia el timer de seguimiento de tiempo en una tarea. Solo puede haber un timer activo a la vez en el portal. Si ya hay uno corriendo, inícialo en la nueva tarea (Zoho lo detiene automáticamente). Usa stop_timer para detenerlo.",
   {
-    project_id: z.string().describe("ID del proyecto"),
-    task_id:    z.string().describe("ID de la tarea"),
-    notes:      z.string().optional().describe("Notas del registro"),
+    project_id: z.string().describe("ID numérico del proyecto"),
+    task_id:    z.string().describe("ID numérico de la tarea"),
+    notes:      z.string().optional().describe("Notas opcionales del registro de tiempo"),
   },
   async ({ project_id, task_id, notes }) => {
     const modulesRes = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/modules`);
@@ -396,10 +396,10 @@ server.tool(
 // ── stop_timer ────────────────────────────────────────────────────────────────
 server.tool(
   "stop_timer",
-  "Detiene el timer de una tarea",
+  "Detiene el timer activo del portal. Zoho descarta automáticamente registros de menos de 30 segundos. El project_id se usa para identificar qué timer detener si hay varios; si no se encuentra uno exacto, detiene el primer timer activo.",
   {
-    project_id: z.string().describe("ID del proyecto"),
-    task_id:    z.string().describe("ID de la tarea"),
+    project_id: z.string().describe("ID numérico del proyecto donde corre el timer"),
+    task_id:    z.string().describe("ID numérico de la tarea (referencia, el timer se busca por project_id)"),
   },
   async ({ project_id, task_id }) => {
     const timersRes = await zohoClient.get(`/portal/${PORTAL}/timelogs/timers`, { type: "task" });
@@ -423,7 +423,7 @@ server.tool(
 // ── list_task_fields ──────────────────────────────────────────────────────────
 server.tool(
   "list_task_fields",
-  "Lista los campos disponibles en las tareas de un proyecto (incluidos custom fields), con su api_name para usar en create_task",
+  "Lista todos los campos disponibles en las tareas de un proyecto, incluyendo campos personalizados (custom fields). Devuelve api_name, label y tipo de cada campo. Usa esta herramienta antes de create_task o update_task cuando necesites pasar custom_fields: el api_name (ej: 'cf_area_tecnica') es la clave que debes usar en el objeto custom_fields.",
   {
     project_id: z.string().describe("ID o nombre del proyecto"),
   },
