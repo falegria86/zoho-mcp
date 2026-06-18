@@ -36,8 +36,8 @@ const CLOSED_STATUSES = new Set(["closed", "cerrada", "done", "completada"]);
 
 async function getOpenTasksForProject(project) {
   try {
-    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project.id}/tasks`);
-    const tasks = (r.tasks || []).filter(
+    const allTasks = await zohoClient.getAllPages(`/portal/${PORTAL}/projects/${project.id}/tasks`);
+    const tasks = allTasks.filter(
       t => !CLOSED_STATUSES.has((t.status?.name || "").toLowerCase())
     );
     return tasks

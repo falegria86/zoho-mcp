@@ -83,6 +83,21 @@ class ZohoClient {
     return this._request("GET", qs ? `${path}?${qs}` : path);
   }
 
+  // Fetches all pages for endpoints that use page/per_page + page_info.has_next_page.
+  async getAllPages(path, params = {}, itemsKey = "tasks") {
+    const all = [];
+    let page = 1;
+    for (;;) {
+      const r = await this.get(path, { ...params, page, per_page: 200 });
+      const items = r[itemsKey] || [];
+      all.push(...items);
+      const hasNext = r.page_info?.has_next_page;
+      if (hasNext !== true && hasNext !== "true") break;
+      page++;
+    }
+    return all;
+  }
+
   post(path, body)  { return this._request("POST",   path, body); }
   patch(path, body) { return this._request("PATCH",  path, body); }
   delete(path)      { return this._request("DELETE", path); }

@@ -182,8 +182,7 @@ server.tool(
   async ({ project_id, status }) => {
     const params = {};
     if (status) params.filter = JSON.stringify({ criteria: [{ field_name: "status", criteria_condition: "is", value: status }], pattern: "1" });
-    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/tasks`, params);
-    const tasks = r.tasks || [];
+    const tasks = await zohoClient.getAllPages(`/portal/${PORTAL}/projects/${project_id}/tasks`, params);
     if (!tasks.length) return text("No se encontraron tareas.");
     return text(tasks.map(t => {
       const owners = (t.owners_and_work?.owners || []).map(o => o.name).join(", ") || "Sin asignar";
