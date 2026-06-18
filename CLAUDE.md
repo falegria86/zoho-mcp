@@ -107,7 +107,7 @@ params.filter = JSON.stringify({
 
 ## Herramientas MCP Expuestas
 
-`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `list_comments`, `add_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
 
 ### `list_tasks`
 
@@ -115,9 +115,19 @@ params.filter = JSON.stringify({
 - Parámetro opcional `status`: acepta `"open"`, `"closed"`, `"overdue"` — se envía a la API como filtro `criteria_condition: "is"`. Si el filtro no funciona en un portal específico (los IDs de estado varían), filtrar el resultado en memoria usando `t.is_completed` o `t.status.name`.
 - Cada tarea en la respuesta incluye `is_completed: true/false` y `status.is_closed_type: true/false` para filtrar localmente sin depender de IDs.
 
+### `update_task`
+
+- Parámetros disponibles: `name`, `description`, `status`, `priority`, `person_responsible`, `due_date`, `completion_percentage` (0-100), `tasklist_id` (para mover a otra lista).
+- Solo se envían los campos que se pasen; los demás quedan intactos.
+- `status` acepta nombre (`"Closed"`, `"En proceso"`) o ID numérico del estado.
+
+### `delete_task`
+
+Elimina una tarea permanentemente incluyendo sus subtareas. **Irreversible.** Para cerrar sin eliminar usar `update_task` con `status="Closed"`.
+
 ### Subtareas (`create_subtask`)
 
-Las subtareas **solo existen en la API v2** de Zoho (`POST /restapi/portal/{nombre}/projects/{id}/tasks/{id_padre}/subtasks/`, form-urlencoded); no hay endpoint en v3. Por eso `create_subtask` usa un enfoque híbrido: crea la subtarea por v2 (el padre se indica en la URL) y luego completa los campos personalizados (revisor, área, horas, etc.) con un `PATCH` v3, reutilizando `buildTaskV3Fields`. La subtarea hereda la lista de tareas del padre. `zoho-client.js` expone `postFormV2` para este caso.
+La API V3 soporta crear subtareas via `parental_info: { parent_task_id }` en el `POST /tasks`. Sin embargo, nuestra herramienta `create_subtask` usa un enfoque híbrido v2+v3 porque el endpoint V2 (`POST /restapi/.../subtasks/`) garantiza que la subtarea hereda la lista del padre sin necesidad de conocer el `tasklist_id`. El flujo es: crear por v2 → completar campos personalizados con `PATCH` v3. `zoho-client.js` expone `postFormV2` para este caso.
 
 ### Creación rápida de tareas (`create_task`)
 
@@ -185,3 +195,14 @@ GET /api/v3/portals  →  [ { portal_name: "sigobproyectos", id: "123456789", ..
 ```
 
 La función `initPortalId()` en `server.js` busca el portal por `portal_name`, `org_name` o `name` y actualiza la variable `PORTAL` con el ID numérico antes de aceptar cualquier tool call. Si `ZOHO_PORTAL_NAME` ya es numérico, se usa directamente sin llamar al endpoint.
+
+## Endpoints V3 disponibles pero no implementados como herramientas
+
+Existen en la API pero no están expuestos como tools MCP. Si se necesitan en el futuro, implementarlos en `server.js` siguiendo el mismo patrón:
+
+| Endpoint | Método | Descripción |
+|---|---|---|
+| `/tasks/{id}/clone` | POST | Clona una tarea N veces; body: `{ no_of_instances: N }` |
+| `/tasks/{id}/move` | POST | Mueve a otra tasklist con mapeo de estados; body: `{ target_tasklist_id, status_mapping[] }` — también se puede hacer via `update_task` con `tasklist_id` |
+| `/tasks/count` | GET | Devuelve `{ task_count }` sin traer las tareas; acepta los mismos `filter`/`view_id` que `list_tasks` |
+| `/tasks/{id}/reorder` | POST | Reordena dentro de una lista; body: `{ before }`, `{ after }` o `{ position: "first"/"last" }` |

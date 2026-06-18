@@ -290,31 +290,49 @@ server.tool(
 // ── update_task ───────────────────────────────────────────────────────────────
 server.tool(
   "update_task",
-  "Actualiza campos de una tarea existente. Solo se envían los campos que se pasen; los demás quedan intactos. Para cerrar una tarea usa status='Closed' o el ID numérico del estado (obtenible con get_task). La descripción se convierte a HTML automáticamente si se pasa texto plano.",
+  "Actualiza campos de una tarea existente. Solo se envían los campos que se pasen; los demás quedan intactos. Para cerrar una tarea usa status='Closed' o el ID numérico del estado (obtenible con get_task). Para mover a otra lista pasa tasklist_id. La descripción se convierte a HTML automáticamente si se pasa texto plano.",
   {
-    project_id:         z.string().describe("ID numérico del proyecto"),
-    task_id:            z.string().describe("ID numérico de la tarea"),
-    name:               z.string().optional().describe("Nuevo nombre"),
-    description:        z.string().optional().describe("Nueva descripción (texto plano o HTML)"),
-    status:             z.string().optional().describe("Nombre del estado ('Open', 'Closed', 'En proceso', etc.) o ID numérico del estado"),
-    priority:           z.enum(["high", "medium", "low", "none"]).optional(),
-    person_responsible: z.string().optional().describe("zpuid del nuevo responsable (obtenible con list_users)"),
-    due_date:           z.string().optional().describe("Fecha límite MM-DD-YYYY"),
+    project_id:            z.string().describe("ID numérico del proyecto"),
+    task_id:               z.string().describe("ID numérico de la tarea"),
+    name:                  z.string().optional().describe("Nuevo nombre"),
+    description:           z.string().optional().describe("Nueva descripción (texto plano o HTML)"),
+    status:                z.string().optional().describe("Nombre del estado ('Open', 'Closed', 'En proceso', etc.) o ID numérico del estado"),
+    priority:              z.enum(["high", "medium", "low", "none"]).optional(),
+    person_responsible:    z.string().optional().describe("zpuid del nuevo responsable (obtenible con list_users)"),
+    due_date:              z.string().optional().describe("Fecha límite MM-DD-YYYY"),
+    completion_percentage: z.number().int().min(0).max(100).optional().describe("Porcentaje de avance (0-100)"),
+    tasklist_id:           z.string().optional().describe("ID de la lista de tareas destino; mover la tarea a otra lista"),
   },
-  async ({ project_id, task_id, name, description, status, priority, person_responsible, due_date }) => {
+  async ({ project_id, task_id, name, description, status, priority, person_responsible, due_date, completion_percentage, tasklist_id }) => {
     const body = {};
-    if (name)              body.name = name;
-    if (description)       body.description = toHtmlDescription(description);
-    if (status)            body.status = /^\d+$/.test(status) ? { id: status } : { name: status };
-    if (priority)          body.priority = priority;
-    if (person_responsible)body.owners_and_work = { owners: [{ zpuid: toZpuid(person_responsible) }] };
-    if (due_date)          body.end_date = toISODate(due_date);
+    if (name)                        body.name = name;
+    if (description)                 body.description = toHtmlDescription(description);
+    if (status)                      body.status = /^\d+$/.test(status) ? { id: status } : { name: status };
+    if (priority)                    body.priority = priority;
+    if (person_responsible)          body.owners_and_work = { owners: [{ zpuid: toZpuid(person_responsible) }] };
+    if (due_date)                    body.end_date = toISODate(due_date);
+    if (completion_percentage != null) body.completion_percentage = completion_percentage;
+    if (tasklist_id)                 body.tasklist = { id: tasklist_id };
 
     if (!Object.keys(body).length) return text("No se proporcionaron campos para actualizar.");
 
     const t = await zohoClient.patch(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}`, body);
     if (t?.id) return text(`Tarea actualizada.\nID: ${t.id} | Nombre: ${t.name} | Estado: ${t.status?.name || "N/A"}`);
     return text(`Respuesta: ${JSON.stringify(t)}`);
+  }
+);
+
+// ── delete_task ───────────────────────────────────────────────────────────────
+server.tool(
+  "delete_task",
+  "Elimina una tarea permanentemente del proyecto. Esta acción es irreversible. También elimina todas sus subtareas. No usar para cerrar tareas — para eso usa update_task con status='Closed'.",
+  {
+    project_id: z.string().describe("ID numérico del proyecto"),
+    task_id:    z.string().describe("ID numérico de la tarea a eliminar"),
+  },
+  async ({ project_id, task_id }) => {
+    await zohoClient.delete(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}`);
+    return text(`Tarea ${task_id} eliminada.`);
   }
 );
 
