@@ -125,7 +125,7 @@ El ID es el mismo para todas las tareas del portal que tengan ese estado — sol
 
 ## Herramientas MCP Expuestas
 
-`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`, `get_task_attachments`, `disassociate_attachment`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
 
 ### `list_tasks`
 
@@ -231,3 +231,7 @@ Existen en la API pero no están expuestos como tools MCP. Si se necesitan en el
 | `/tasks/{id}/move` | POST | Mueve a otra tasklist con mapeo de estados; body: `{ target_tasklist_id, status_mapping[] }` — también se puede hacer via `update_task` con `tasklist_id` |
 | `/tasks/count` | GET | Devuelve `{ task_count }` sin traer las tareas; acepta los mismos `filter`/`view_id` que `list_tasks` |
 | `/tasks/{id}/reorder` | POST | Reordena dentro de una lista; body: `{ before }`, `{ after }` o `{ position: "first"/"last" }` |
+| `/attachments` (POST) | POST | Sube archivo al portal (multipart form-data, max 125 MB); no implementable desde agente MCP porque requiere contenido binario |
+| `/associate-attachments` | POST | Sube y asocia archivo a una entidad en un paso (max 20 MB, multipart); misma limitación de binario |
+| `/entity-attachments` | POST | Asocia un archivo ya subido a WorkDrive (via `thirdparty_id`) a una entidad; útil si se tiene el WorkDrive resource ID |
+| `/attachments/{id}` (GET) | GET | Detalle de un adjunto específico por `attachment_id` |

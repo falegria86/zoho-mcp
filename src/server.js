@@ -507,6 +507,44 @@ server.tool(
   }
 );
 
+// ── get_task_attachments ──────────────────────────────────────────────────────
+server.tool(
+  "get_task_attachments",
+  "Lista los archivos adjuntos de una tarea. Devuelve attachment_id, nombre, tipo, tamaño, quién lo asoció y URLs de descarga/preview. El attachment_id es necesario para disassociate_attachment.",
+  {
+    project_id: z.string().describe("ID numérico del proyecto"),
+    task_id:    z.string().describe("ID numérico de la tarea"),
+  },
+  async ({ project_id, task_id }) => {
+    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/attachments`, {
+      entity_type: "task",
+      entity_id: task_id,
+    });
+    const attachments = r.attachment || [];
+    if (!attachments.length) return text("Esta tarea no tiene archivos adjuntos.");
+    return text(attachments.map(a =>
+      `ID: ${a.attachment_id} | Nombre: ${a.name} | Tipo: ${a.type} | Tamaño: ${Math.round(a.size / 1024)} KB | Por: ${a.associated_by_name || "N/A"}\nDescarga: ${a.download_url || "N/A"}`
+    ).join("\n---\n"));
+  }
+);
+
+// ── disassociate_attachment ───────────────────────────────────────────────────
+server.tool(
+  "disassociate_attachment",
+  "Desvincula un archivo adjunto de una tarea. El archivo no se elimina de WorkDrive, solo se desasocia de la tarea. Requiere el attachment_id (obtenible con get_task_attachments).",
+  {
+    project_id:    z.string().describe("ID numérico del proyecto"),
+    task_id:       z.string().describe("ID numérico de la tarea"),
+    attachment_id: z.string().describe("ID del adjunto a desvincular (obtenible con get_task_attachments)"),
+  },
+  async ({ project_id, task_id, attachment_id }) => {
+    await zohoClient.delete(
+      `/portal/${PORTAL}/projects/${project_id}/attachments/${attachment_id}?entity_type=task&entity_id=${task_id}`
+    );
+    return text(`Adjunto ${attachment_id} desvinculado de la tarea.`);
+  }
+);
+
 // ── start server ──────────────────────────────────────────────────────────────
 await initPortalId();
 const transport = new StdioServerTransport();
