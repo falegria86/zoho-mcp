@@ -248,3 +248,5 @@ Existen en la API pero no están expuestos como tools MCP. Si se necesitan en el
 | `/attachments/{id}` (GET) | GET | Detalle de un adjunto específico por `attachment_id` |
 | `/logs` (PATCH) | PATCH | Actualiza uno o varios registros de tiempo existentes; body: array de `{ id, date, hours, notes, bill_status, ... }` |
 | `/(timelogs)/bulkdelete` | DELETE | Elimina registros de tiempo; body: `{ id, module: { id, type } }` |
+| `/projects/{id}/timelogs/approver` (GET) | GET | Obtiene el aprobador por defecto de registros de tiempo de un usuario en el proyecto |
+| `/projects/{id}/timelogs/approver` (PATCH) | PATCH | Cambia el aprobador por defecto; body: `{ user: zpuid, approver: zpuid }` |
