@@ -107,7 +107,7 @@ params.filter = JSON.stringify({
 
 ## Herramientas MCP Expuestas
 
-`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
 
 ### `list_tasks`
 
@@ -124,6 +124,13 @@ params.filter = JSON.stringify({
 ### `delete_task`
 
 Elimina una tarea permanentemente incluyendo sus subtareas. **Irreversible.** Para cerrar sin eliminar usar `update_task` con `status="Closed"`.
+
+### Comentarios (`list_comments`, `add_comment`, `update_comment`, `delete_comment`)
+
+- `list_comments` trae **todos** los comentarios con paginación automática (`getAllPages` con `itemsKey="comments"`). Devuelve `id`, `created_by.full_name` y `comment`. El `id` es necesario para editar o eliminar.
+- `add_comment` devuelve el ID del comentario creado.
+- `update_comment` y `delete_comment` requieren el `comment_id` obtenible con `list_comments`.
+- Para mencionar usuarios en comentarios: formato `[~zpuid]`.
 
 ### Subtareas (`create_subtask`)
 

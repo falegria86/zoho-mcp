@@ -339,23 +339,28 @@ server.tool(
 // ── list_comments ─────────────────────────────────────────────────────────────
 server.tool(
   "list_comments",
-  "Lista todos los comentarios de una tarea en orden cronológico. Cada comentario incluye autor (created_by.name) y texto (comment).",
+  "Lista TODOS los comentarios de una tarea (paginación automática). Cada comentario incluye id, autor (created_by.full_name), texto (comment) y fecha (created_time). El id del comentario es necesario para update_comment y delete_comment.",
   {
     project_id: z.string().describe("ID numérico del proyecto"),
     task_id:    z.string().describe("ID numérico de la tarea"),
   },
   async ({ project_id, task_id }) => {
-    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/comments`);
-    const comments = r.comments || [];
+    const comments = await zohoClient.getAllPages(
+      `/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/comments`,
+      {},
+      "comments"
+    );
     if (!comments.length) return text("No hay comentarios en esta tarea.");
-    return text(comments.map(c => `[${c.created_by?.name || "Desconocido"}]: ${c.comment || ""}`).join("\n---\n"));
+    return text(comments.map(c =>
+      `ID: ${c.id} | [${c.created_by?.full_name || c.created_by?.name || "Desconocido"}]: ${c.comment || ""}`
+    ).join("\n---\n"));
   }
 );
 
 // ── add_comment ───────────────────────────────────────────────────────────────
 server.tool(
   "add_comment",
-  "Agrega un comentario de texto a una tarea. Para mencionar a un usuario en el comentario usa el formato [~zpuid] (ej: [~106599000002000123]).",
+  "Agrega un comentario de texto a una tarea. Para mencionar a un usuario en el comentario usa el formato [~zpuid] (ej: [~106599000002000123]). Devuelve el ID del comentario creado.",
   {
     project_id: z.string().describe("ID numérico del proyecto"),
     task_id:    z.string().describe("ID numérico de la tarea"),
@@ -366,8 +371,43 @@ server.tool(
       `/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/comments`,
       { comment: content }
     );
-    if (Array.isArray(r) && r.length) return text("Comentario agregado exitosamente.");
+    if (Array.isArray(r) && r.length) return text(`Comentario agregado. ID: ${r[0].id}`);
     return text(`Respuesta: ${JSON.stringify(r)}`);
+  }
+);
+
+// ── update_comment ────────────────────────────────────────────────────────────
+server.tool(
+  "update_comment",
+  "Edita el texto de un comentario existente. Requiere el ID del comentario (obtenible con list_comments).",
+  {
+    project_id:  z.string().describe("ID numérico del proyecto"),
+    task_id:     z.string().describe("ID numérico de la tarea"),
+    comment_id:  z.string().describe("ID numérico del comentario a editar"),
+    content:     z.string().describe("Nuevo texto del comentario"),
+  },
+  async ({ project_id, task_id, comment_id, content }) => {
+    const r = await zohoClient.patch(
+      `/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/comments/${comment_id}`,
+      { comment: content }
+    );
+    if (Array.isArray(r) && r.length) return text(`Comentario actualizado. ID: ${r[0].id}`);
+    return text(`Respuesta: ${JSON.stringify(r)}`);
+  }
+);
+
+// ── delete_comment ────────────────────────────────────────────────────────────
+server.tool(
+  "delete_comment",
+  "Elimina un comentario de una tarea permanentemente. Irreversible. Requiere el ID del comentario (obtenible con list_comments).",
+  {
+    project_id:  z.string().describe("ID numérico del proyecto"),
+    task_id:     z.string().describe("ID numérico de la tarea"),
+    comment_id:  z.string().describe("ID numérico del comentario a eliminar"),
+  },
+  async ({ project_id, task_id, comment_id }) => {
+    await zohoClient.delete(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/comments/${comment_id}`);
+    return text(`Comentario ${comment_id} eliminado.`);
   }
 );
 
