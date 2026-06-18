@@ -204,13 +204,17 @@ server.tool(
     if (!t?.id) return text("Tarea no encontrada.");
     const owners = (t.owners_and_work?.owners || []).map(o => o.name).join(", ") || "Sin asignar";
     return text([
-      `Nombre:      ${t.name}`,
-      `ID:          ${t.id}`,
-      `Estado:      ${t.status?.name || "N/A"}`,
-      `Prioridad:   ${t.priority || "N/A"}`,
-      `Asignado a:  ${owners}`,
-      `Fecha límite:${t.end_date ? t.end_date.slice(0, 10) : "Sin fecha"}`,
-      `Descripción: ${t.description || "Sin descripción"}`,
+      `Nombre:        ${t.name}`,
+      `ID:            ${t.id}`,
+      `Estado:        ${t.status?.name || "N/A"} (id: ${t.status?.id || "N/A"}, cerrado: ${t.status?.is_closed_type ?? "N/A"})`,
+      `Completada:    ${t.is_completed ?? "N/A"}`,
+      `Prioridad:     ${t.priority || "N/A"}`,
+      `Asignado a:    ${owners}`,
+      `Fecha inicio:  ${t.start_date ? t.start_date.slice(0, 10) : "Sin fecha"}`,
+      `Fecha límite:  ${t.end_date ? t.end_date.slice(0, 10) : "Sin fecha"}`,
+      `% completado:  ${t.completion_percentage ?? "N/A"}`,
+      `Lista:         ${t.tasklist?.id || "N/A"}`,
+      `Descripción:   ${t.description || "Sin descripción"}`,
     ].join("\n"));
   }
 );
