@@ -22,7 +22,7 @@ No hay paso de compilación ni pruebas — el proyecto corre directamente como m
 Tres archivos fuente con separación clara de responsabilidades:
 
 - **`src/server.js`** — Punto de entrada del servidor MCP. Al arrancar llama a `GET /api/v3/portals` para resolver el nombre del portal (`ZOHO_PORTAL_NAME`) a su ID numérico requerido por V3, y lo almacena en la variable `PORTAL`. Registra las 12 herramientas con esquemas de parámetros Zod y delega cada una a `zohoClient`.
-- **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/api/v3`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/json`.
+- **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/api/v3`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/json`. Expone `get`, `post`, `patch`, `delete`, `postFormV2` y `getAllPages` (paginación automática).
 - **`src/setup-auth.js`** — Configuración OAuth2 de una sola vez: abre la URL de autorización, recibe el código via servidor HTTP local en el puerto 8080, lo intercambia por tokens y escribe `tokens.json`.
 
 ### Scripts utilitarios (`scripts/`)
@@ -64,9 +64,56 @@ Variable de entorno opcional: `ZOHO_MY_NAME` — si se define (ej: `"Francisco G
 
 El refresco de tokens es transparente: `zoho-client.js` reintenta cualquier 401 automáticamente con un token de acceso nuevo y luego persiste el nuevo token en disco.
 
+## Paginación en la API V3
+
+Todos los endpoints de listado en V3 usan `page`/`per_page` con `page_info.has_next_page` en la respuesta. El máximo por página es 200.
+
+**Regla:** usar siempre `zohoClient.getAllPages(path, params, itemsKey)` en lugar de `zohoClient.get()` para cualquier endpoint que devuelva listas. `getAllPages` itera automáticamente todas las páginas hasta que `page_info.has_next_page` no sea `true`.
+
+```js
+// Correcto — trae TODAS las tareas del proyecto
+const tasks = await zohoClient.getAllPages(`/portal/${PORTAL}/projects/${id}/tasks`, params);
+
+// Incorrecto — solo devuelve la primera página (máx. 100 tareas)
+const r = await zohoClient.get(`/portal/${PORTAL}/projects/${id}/tasks`, params);
+const tasks = r.tasks || [];
+```
+
+El parámetro `itemsKey` (por defecto `"tasks"`) debe coincidir con la clave del array en la respuesta: `"tasks"` para tareas, `"tasklists"` para listas de tareas, `"projects"` para proyectos.
+
+> **Nota:** `sindex` aparece en la doc de Zoho solo para el endpoint "Get Associated Tasks From Issue" — no se usa en los endpoints generales de tasks ni tasklists.
+
+### Filtros en endpoints de tareas
+
+El parámetro `filter` es un JSON con `criteria` + `pattern`. Ejemplos de uso en `list_tasks`:
+
+```js
+// Por estado — el value es array de IDs numéricos del estado, NO strings como "open"
+params.filter = JSON.stringify({
+  criteria: [{ field_name: "status", criteria_condition: "contains", value: [4000000000485] }],
+  pattern: "1"
+});
+
+// Por completado — más confiable que buscar IDs de estado, funciona en todos los portales
+params.filter = JSON.stringify({
+  criteria: [{ field_name: "is_completed", criteria_condition: "is", value: false }],
+  pattern: "1"
+});
+```
+
+**Importante:** los IDs de estado (`value: [<id>]`) varían por portal. Para obtenerlos, hacer un `get_task` de cualquier tarea y leer `status.id`. El campo `is_completed: true/false` en la respuesta de cada tarea es portable y no depende de IDs.
+
+`sort_by` soporta: `id`, `name`, `start_date`, `end_date`, `completion_percentage`, `created_time`, `last_modified_time`, `created_by`, `is_completed`. Formato: `ASC(campo)` o `DESC(campo)`.
+
 ## Herramientas MCP Expuestas
 
 `list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `list_comments`, `add_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+
+### `list_tasks`
+
+- Devuelve **todas** las tareas del proyecto (paginación automática vía `getAllPages`).
+- Parámetro opcional `status`: acepta `"open"`, `"closed"`, `"overdue"` — se envía a la API como filtro `criteria_condition: "is"`. Si el filtro no funciona en un portal específico (los IDs de estado varían), filtrar el resultado en memoria usando `t.is_completed` o `t.status.name`.
+- Cada tarea en la respuesta incluye `is_completed: true/false` y `status.is_closed_type: true/false` para filtrar localmente sin depender de IDs.
 
 ### Subtareas (`create_subtask`)
 
