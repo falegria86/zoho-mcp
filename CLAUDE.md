@@ -125,7 +125,7 @@ El ID es el mismo para todas las tareas del portal que tengan ese estado — sol
 
 ## Herramientas MCP Expuestas
 
-`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`, `get_task_attachments`, `disassociate_attachment`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`, `get_task_attachments`, `disassociate_attachment`, `get_time_logs`, `add_time_log`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
 
 ### `list_tasks`
 
@@ -162,6 +162,17 @@ La API V3 soporta crear subtareas via `parental_info: { parent_task_id }` en el 
 - `start_date` es **requerida por la API de Zoho**; si no se proporciona, el servidor usa la fecha de hoy automáticamente
 - Para campos personalizados usar `list_task_fields` para obtener los `api_name` y pasarlos en `custom_fields` como `{"cf_area_tecnica": "Backend"}`
 - `description` se convierte automáticamente a HTML antes de enviarse a Zoho (ver abajo); si ya contiene HTML se envía tal cual
+
+### Registros de tiempo: timer vs manual
+
+Hay dos formas de registrar tiempo:
+
+| Método | Cuándo usar | Herramientas |
+|---|---|---|
+| **Timer en vivo** | Trabajo en curso — inicias y detienes en tiempo real | `start_timer` → `stop_timer` |
+| **Registro manual** | Tiempo pasado — sabes exactamente cuántas horas trabajaste | `add_time_log` |
+
+`get_time_logs` sirve para consultar el historial de registros de un proyecto por rango de fechas, con filtro opcional por usuario (`user_zpuid`).
 
 ### Formato HTML automático de descripciones
 
@@ -235,3 +246,5 @@ Existen en la API pero no están expuestos como tools MCP. Si se necesitan en el
 | `/associate-attachments` | POST | Sube y asocia archivo a una entidad en un paso (max 20 MB, multipart); misma limitación de binario |
 | `/entity-attachments` | POST | Asocia un archivo ya subido a WorkDrive (via `thirdparty_id`) a una entidad; útil si se tiene el WorkDrive resource ID |
 | `/attachments/{id}` (GET) | GET | Detalle de un adjunto específico por `attachment_id` |
+| `/logs` (PATCH) | PATCH | Actualiza uno o varios registros de tiempo existentes; body: array de `{ id, date, hours, notes, bill_status, ... }` |
+| `/(timelogs)/bulkdelete` | DELETE | Elimina registros de tiempo; body: `{ id, module: { id, type } }` |

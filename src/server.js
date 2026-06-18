@@ -545,6 +545,88 @@ server.tool(
   }
 );
 
+// ── get_time_logs ─────────────────────────────────────────────────────────────
+server.tool(
+  "get_time_logs",
+  "Lista los registros de tiempo de un proyecto en un rango de fechas. Devuelve por cada entrada: owner, tarea, horas (log_hour), fecha, notas y estado de aprobación. Útil para reportes de horas trabajadas. Si no se pasan fechas, devuelve el mes actual. Para filtrar por usuario usa user_zpuid.",
+  {
+    project_id: z.string().describe("ID numérico del proyecto"),
+    start_date: z.string().optional().describe("Fecha inicio YYYY-MM-DD (por defecto: primer día del mes actual)"),
+    end_date:   z.string().optional().describe("Fecha fin YYYY-MM-DD (por defecto: hoy). Diferencia máxima: 6 meses"),
+    user_zpuid: z.string().optional().describe("zpuid del usuario para filtrar sus registros (obtenible con list_users)"),
+  },
+  async ({ project_id, start_date, end_date, user_zpuid }) => {
+    const modulesRes = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/modules`);
+    const taskModule = (modulesRes.modules || []).find(m => m.module_name === "Task");
+    if (!taskModule) return text("No se encontró el módulo de tareas en este proyecto.");
+
+    const now = new Date();
+    const sd = start_date || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    const ed = end_date   || now.toISOString().slice(0, 10);
+
+    const params = {
+      view_type:  "customdate",
+      start_date: sd,
+      end_date:   ed,
+      module:     JSON.stringify({ id: taskModule.module_id, type: "task" }),
+    };
+    if (user_zpuid) {
+      params.filter = JSON.stringify({
+        criteria: [{ field_name: "user", criteria_condition: "is", value: [user_zpuid] }],
+        pattern: "1",
+      });
+    }
+
+    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/timelogs`, params);
+    const days = r.time_logs || [];
+    if (!days.length) return text("No se encontraron registros de tiempo en ese rango.");
+
+    const total = r.log_hours?.total_hours || "N/A";
+    const lines = [`Total: ${total}`, ""];
+    for (const day of days) {
+      for (const log of day.log_details || []) {
+        lines.push(
+          `${log.date} | ${log.owner?.name || "N/A"} | ${log.module_detail?.name || "N/A"} | ${log.log_hour} | ${log.approval?.status || "N/A"}${log.notes ? " | " + log.notes.split("\n")[0] : ""}`
+        );
+      }
+    }
+    return text(lines.join("\n"));
+  }
+);
+
+// ── add_time_log ──────────────────────────────────────────────────────────────
+server.tool(
+  "add_time_log",
+  "Registra horas manualmente en una tarea (sin usar el timer). Útil para registrar tiempo pasado. Las horas van en formato decimal: '1.5' = 1h 30min. La fecha es YYYY-MM-DD. Si no se pasa owner_zpuid se usa ZOHO_MY_USER_ID.",
+  {
+    project_id:  z.string().describe("ID numérico del proyecto"),
+    task_id:     z.string().describe("ID numérico de la tarea"),
+    hours:       z.string().describe("Horas en formato decimal, ej: '2.5' para 2h 30min"),
+    date:        z.string().describe("Fecha del registro YYYY-MM-DD"),
+    notes:       z.string().optional().describe("Notas del registro"),
+    owner_zpuid: z.string().optional().describe("zpuid del propietario del registro (por defecto: ZOHO_MY_USER_ID)"),
+    bill_status: z.enum(["Billable", "Non Billable"]).optional().describe("Estado de facturación (por defecto: Non Billable)"),
+  },
+  async ({ project_id, task_id, hours, date, notes, owner_zpuid, bill_status }) => {
+    const zpuid = owner_zpuid || process.env.ZOHO_MY_USER_ID;
+    const entry = {
+      project_id,
+      item_id:     task_id,
+      type:        "task",
+      date,
+      hours,
+      bill_status: bill_status || "Non Billable",
+      owner_zpuid: zpuid,
+    };
+    if (notes) entry.notes = notes;
+
+    const r = await zohoClient.post(`/portal/${PORTAL}/addbulktimelogs`, { log_object: [entry] });
+    const logs = r.time_logs?.[0]?.log_details || [];
+    if (logs.length) return text(`Tiempo registrado. ID: ${logs[0].id} | Horas: ${logs[0].log_hour}`);
+    return text(`Respuesta: ${JSON.stringify(r)}`);
+  }
+);
+
 // ── start server ──────────────────────────────────────────────────────────────
 await initPortalId();
 const transport = new StdioServerTransport();
