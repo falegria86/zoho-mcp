@@ -1,6 +1,6 @@
 # zoho-projects-mcp
 
-Servidor [MCP (Model Context Protocol)](https://modelcontextprotocol.io) que conecta **Zoho Projects** con **Claude AI**. Permite gestionar proyectos y tareas, registrar tiempo y manejar comentarios directamente desde conversaciones con Claude.
+Servidor [MCP (Model Context Protocol)](https://modelcontextprotocol.io) que conecta **Zoho Projects** con **Claude AI**. Permite gestionar proyectos y tareas, registrar tiempo, manejar comentarios y sincronizar horas directamente desde conversaciones con Claude.
 
 ## Requisitos
 
@@ -30,10 +30,13 @@ ZOHO_MY_USER_ID=tu_id_de_usuario_numerico
 ZOHO_MY_NAME=Tu Nombre Completo
 ZOHO_TEAM_EMAILS=usuario1@empresa.com,usuario2@empresa.com
 ZOHO_TEAM_NAMES=nombre1,apellido1,nombre2,apellido2
+ZOHO_AUTO_TIMER_PROJECT_ID=id_numerico_del_proyecto
+ZOHO_AUTO_TIMER_TASK_ID=id_numerico_de_la_tarea
+ZOHO_REFRESH_TOKEN=tu_refresh_token
 ```
 
-- `ZOHO_PORTAL_NAME` — nombre del portal en la URL de Zoho Projects (por defecto: `sigobproyectos`)
-- `ZOHO_MY_USER_ID` — ID numérico del usuario que se asigna por defecto al crear tareas; obténlo ejecutando `list_users` en cualquier proyecto
+- `ZOHO_PORTAL_NAME` — nombre del portal en la URL de Zoho Projects (ej: `sigobproyectos`)
+- `ZOHO_MY_USER_ID` — ID numérico del usuario que se asigna por defecto al crear tareas; obténlo con `list_users` en cualquier proyecto
 - `ZOHO_MY_NAME` — nombre completo del usuario (opcional); amplía la detección de menciones por nombre en `my-mentions`
 - `ZOHO_TEAM_EMAILS` — lista separada por comas de emails del equipo para `team-tasks`
 - `ZOHO_TEAM_NAMES` — fragmentos de nombre separados por comas para detectar miembros del equipo por nombre (ej: `"jose ramon,tejeda,kevin"`)
@@ -99,19 +102,47 @@ npm run my-mentions -- "nombre-proyecto" --from=2026-06-01
 
 ## Herramientas MCP disponibles
 
+### Proyectos y tareas
+
 | Herramienta | Descripción | Parámetros requeridos |
 |---|---|---|
 | `list_projects` | Lista todos los proyectos del portal | — |
-| `list_tasks` | Lista las tareas de un proyecto | `project_id` |
+| `list_tasks` | Lista todas las tareas de un proyecto (paginación automática) | `project_id` |
 | `get_task` | Detalle completo de una tarea | `project_id`, `task_id` |
 | `create_task` | Crea una nueva tarea | `project_id`, `name` |
-| `update_task` | Actualiza estado, prioridad, responsable, etc. | `project_id`, `task_id` |
-| `list_comments` | Lista los comentarios de una tarea | `project_id`, `task_id` |
-| `add_comment` | Agrega un comentario a una tarea | `project_id`, `task_id`, `content` |
-| `list_users` | Lista los usuarios de un proyecto | `project_id` |
+| `create_subtask` | Crea una subtarea bajo una tarea padre | `project_id`, `parent_task_id`, `name` |
+| `update_task` | Actualiza estado, prioridad, responsable, fechas, etc. | `project_id`, `task_id` |
+| `delete_task` | Elimina una tarea permanentemente (irreversible) | `project_id`, `task_id` |
+| `list_users` | Lista los usuarios de un proyecto con su zpuid | `project_id` |
 | `list_task_fields` | Lista los campos personalizados disponibles | `project_id` |
+
+### Comentarios
+
+| Herramienta | Descripción | Parámetros requeridos |
+|---|---|---|
+| `list_comments` | Lista todos los comentarios de una tarea | `project_id`, `task_id` |
+| `add_comment` | Agrega un comentario a una tarea | `project_id`, `task_id`, `content` |
+| `update_comment` | Edita un comentario existente | `project_id`, `task_id`, `comment_id`, `content` |
+| `delete_comment` | Elimina un comentario (irreversible) | `project_id`, `task_id`, `comment_id` |
+
+### Archivos adjuntos
+
+| Herramienta | Descripción | Parámetros requeridos |
+|---|---|---|
+| `get_task_attachments` | Lista los archivos adjuntos de una tarea con URLs de descarga | `project_id`, `task_id` |
+| `disassociate_attachment` | Desvincula un adjunto de una tarea (no lo elimina de WorkDrive) | `project_id`, `task_id`, `attachment_id` |
+
+### Tiempo
+
+| Herramienta | Descripción | Parámetros requeridos |
+|---|---|---|
 | `start_timer` | Inicia el timer de tiempo en una tarea | `project_id`, `task_id` |
-| `stop_timer` | Detiene el timer de una tarea | `project_id`, `task_id` |
+| `stop_timer` | Detiene el timer activo | `project_id`, `task_id` |
+| `get_time_logs` | Lista los registros de tiempo de un proyecto por rango de fechas | `project_id` |
+| `add_time_log` | Registra horas manualmente en una tarea | `project_id`, `task_id`, `hours`, `date` |
+| `sync_task_hours` | Para cada tarea cerrada con horas planeadas, crea un time log igual a `total_work × factor` | `project_id` |
+
+---
 
 ### Notas sobre `create_task`
 
@@ -124,9 +155,29 @@ npm run my-mentions -- "nombre-proyecto" --from=2026-06-01
   { "cf_area_tecnica": "Backend" }
   ```
 
+### Notas sobre `update_task`
+
+- Solo se envían los campos que se pasen; los demás quedan intactos.
+- Para cambiar el estado necesitas el ID numérico del estado (no el nombre). Patrón: busca con `list_tasks` una tarea que ya tenga ese estado → llama a `get_task` → lee el ID en el campo Estado.
+- Para mover la tarea a otra lista usa el parámetro `tasklist_id`.
+
+### Notas sobre `get_time_logs`
+
+- Itera sobre las tareas del proyecto consultando los logs de cada una individualmente (limitación de la API de Zoho).
+- Si se pasa `user_zpuid`, solo consulta las tareas asignadas a ese usuario.
+- Si no se pasan fechas, devuelve el mes actual.
+
+### Notas sobre `sync_task_hours`
+
+- Opera sobre tareas **cerradas** con `owners_and_work.total_work > 0`.
+- `factor` (0.0–2.0, por defecto `1.0`): multiplica las horas planeadas antes de crear el log. Ej: `0.95` registra el 95% de las horas planeadas.
+- La fecha del log usa `end_date` de la tarea; si no tiene, usa la fecha de hoy.
+- **No reemplaza logs existentes** — crea un entry adicional.
+- Procesa en lotes de 3 con pausa entre ellos para respetar el rate limit de Zoho.
+
 ### Formato HTML de descripciones
 
-El campo `description` en `create_task` y `update_task` se convierte automáticamente a HTML antes de enviarse a Zoho, para que se renderice correctamente en la interfaz.
+El campo `description` en `create_task` y `update_task` se convierte automáticamente a HTML antes de enviarse a Zoho.
 
 - Si el texto **ya contiene HTML**, se envía tal cual.
 - Si es **texto plano**, se aplica la siguiente conversión:
@@ -136,26 +187,6 @@ El campo `description` en `create_task` y `update_task` se convierte automática
 | Línea en MAYÚSCULAS (ej: `SITUACIÓN ACTUAL`) | `<h3>SITUACIÓN ACTUAL</h3><br><br>` |
 | Línea con `-`, `*` o `•` al inicio | Agrupada en `<ul><li>...</li></ul>` |
 | Cualquier otro texto | `<p>texto</p>` |
-
-**Ejemplo de entrada:**
-
-```
-SITUACIÓN ACTUAL
-El sistema presenta errores al guardar.
-
-LO QUE SE NECESITA
-- Revisar el endpoint de guardado
-- Agregar validación en el frontend
-
-ARCHIVOS A MODIFICAR
-src/api/save.js
-```
-
-**HTML generado:**
-
-```html
-<h3>SITUACIÓN ACTUAL</h3><br><br><p>El sistema presenta errores al guardar.</p><h3>LO QUE SE NECESITA</h3><br><br><ul><li>Revisar el endpoint de guardado</li><li>Agregar validación en el frontend</li></ul><h3>ARCHIVOS A MODIFICAR</h3><br><br><p>src/api/save.js</p>
-```
 
 ## Timer automático (cron)
 
@@ -287,7 +318,7 @@ En Mac, si la máquina duerme exactamente a esa hora el cron puede no dispararse
 
 ```
 src/
-├── server.js        # Punto de entrada MCP — registra las 11 herramientas con esquemas Zod
+├── server.js        # Punto de entrada MCP — registra las 20 herramientas con esquemas Zod
 ├── zoho-client.js   # Cliente HTTP singleton — refresco automático de tokens en 401
 └── setup-auth.js    # Flujo OAuth2 de una sola vez
 
@@ -297,7 +328,7 @@ scripts/
 └── my-mentions.js   # Utilidad CLI — comentarios que te mencionan, con filtro de fechas
 ```
 
-El cliente HTTP (`zoho-client.js`) intercepta respuestas 401, renueva el access token usando el refresh token y reintenta la solicitud original de forma transparente.
+El cliente HTTP (`zoho-client.js`) intercepta respuestas 401, renueva el access token usando el refresh token y reintenta la solicitud original de forma transparente. Para endpoints que requieren `application/x-www-form-urlencoded` (como `addbulktimelogs`) expone `postForm()` en lugar del `post()` estándar que envía JSON.
 
 ## Archivos sensibles
 
