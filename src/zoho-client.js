@@ -102,6 +102,31 @@ class ZohoClient {
   patch(path, body) { return this._request("PATCH",  path, body); }
   delete(path)      { return this._request("DELETE", path); }
 
+  // POST form-urlencoded a la API v3. Necesario para endpoints que esperan multipart/form-data
+  // (ej: addbulktimelogs). Los valores en body deben ser strings; los arrays/objetos deben
+  // pasarse ya serializados como JSON string.
+  async postForm(path, body) {
+    const url = path.startsWith("/api/")
+      ? `https://projectsapi.zoho.com${path}`
+      : `${BASE_URL}${path}`;
+    const send = () => fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Zoho-oauthtoken ${this.accessToken}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams(body).toString(),
+    });
+    let res = await send();
+    if (res.status === 401) {
+      await this._refresh();
+      res = await send();
+    }
+    const raw = await res.text();
+    if (!raw) return {};
+    try { return JSON.parse(raw); } catch { return raw; }
+  }
+
   // POST form-urlencoded a la API v2 (/restapi). Necesario para endpoints que solo existen
   // en v2, como la creación de subtareas. Refresca el token en 401 igual que _request.
   async postFormV2(path, body) {

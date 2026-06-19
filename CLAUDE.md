@@ -22,7 +22,7 @@ No hay paso de compilación ni pruebas — el proyecto corre directamente como m
 Tres archivos fuente con separación clara de responsabilidades:
 
 - **`src/server.js`** — Punto de entrada del servidor MCP. Al arrancar llama a `GET /api/v3/portals` para resolver el nombre del portal (`ZOHO_PORTAL_NAME`) a su ID numérico requerido por V3, y lo almacena en la variable `PORTAL`. Registra las 12 herramientas con esquemas de parámetros Zod y delega cada una a `zohoClient`.
-- **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/api/v3`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/json`. Expone `get`, `post`, `patch`, `delete`, `postFormV2` y `getAllPages` (paginación automática).
+- **`src/zoho-client.js`** — Cliente HTTP singleton para la API REST de Zoho Projects (`https://projectsapi.zoho.com/api/v3`). Carga los tokens desde `tokens.json`, refresca automáticamente en respuesta 401 y reintenta la solicitud original una vez. Los cuerpos de solicitud usan `application/json`. Expone `get`, `post`, `patch`, `delete`, `postForm`, `postFormV2` y `getAllPages` (paginación automática). Ver sección "Time Logs API" para detalle de cuándo usar `postForm` vs `post`.
 - **`src/setup-auth.js`** — Configuración OAuth2 de una sola vez: abre la URL de autorización, recibe el código via servidor HTTP local en el puerto 8080, lo intercambia por tokens y escribe `tokens.json`.
 
 ### Scripts utilitarios (`scripts/`)
@@ -165,12 +165,14 @@ La API V3 soporta crear subtareas via `parental_info: { parent_task_id }` en el 
 
 ### `sync_task_hours`
 
-Recorre todos los time logs de un proyecto en un rango de fechas, acumula las horas por tarea y actualiza `owners_and_work.total_work` en cada una. Útil para que las horas asignadas reflejen el trabajo real del equipo.
+Para cada tarea **cerrada** del proyecto que tenga horas planeadas (`owners_and_work.total_work > 0`), crea un registro de tiempo (`add_time_log`) igual a `total_work × factor`. El caso de uso principal es registrar el 95% de las horas planeadas al cierre de una tarea.
 
-- Sin `user_zpuid`: sincroniza todas las tareas que tengan tiempo registrado en el proyecto.
-- Con `user_zpuid`: solo las tareas donde ese usuario haya logueado tiempo.
-- Rango por defecto: último año hasta hoy.
-- Las horas acumuladas se suman de todos los `log_hour` del período, sin importar quién los registró.
+- `factor` (0.0–1.0, por defecto 1.0): multiplicador sobre las horas planeadas antes de crear el log. Ej: `0.95` → 95% de las horas planeadas.
+- Sin `user_zpuid`: aplica a todas las tareas cerradas del proyecto.
+- Con `user_zpuid`: solo las tareas cerradas asignadas a ese usuario. El log se crea con ese zpuid como owner.
+- La fecha del log es `end_date` de la tarea (si existe), si no usa la fecha de hoy.
+- **No reemplaza logs existentes** — crea un nuevo entry adicional. Si la tarea ya tiene logs del timer, este tool agrega un log extra.
+- Si `total_work` es `"0:00"` o no existe, la tarea se omite.
 
 ### Registros de tiempo: timer vs manual
 
@@ -240,6 +242,66 @@ GET /api/v3/portals  →  [ { portal_name: "sigobproyectos", id: "123456789", ..
 ```
 
 La función `initPortalId()` en `server.js` busca el portal por `portal_name`, `org_name` o `name` y actualiza la variable `PORTAL` con el ID numérico antes de aceptar cualquier tool call. Si `ZOHO_PORTAL_NAME` ya es numérico, se usa directamente sin llamar al endpoint.
+
+## Time Logs API — Restricciones y Comportamiento
+
+Descubrimientos críticos encontrados al implementar `get_time_logs`, `add_time_log` y `sync_task_hours`:
+
+### 1. `GET .../timelogs` requiere `module:{id,type}` por tarea
+
+El endpoint `GET /portal/{id}/projects/{pid}/timelogs` **no devuelve todos los logs del proyecto**. Requiere el parámetro `module` con el ID de la entidad específica (tarea), no el ID del tipo de módulo del proyecto.
+
+```js
+// ✅ Correcto — id es el ID de la TAREA (task.id), no del módulo del proyecto
+zohoClient.get(`/portal/${PORTAL}/projects/${pid}/timelogs`, {
+  view_type: "customdate",
+  start_date: sd,
+  end_date:   ed,
+  module: JSON.stringify({ id: task.id, type: "task" }),
+});
+
+// ❌ Incorrecto — usar el module_id del proyecto (de /projects/{id}/modules) devuelve []
+// module: JSON.stringify({ id: "106599000006744005", type: "task" })
+```
+
+Consecuencia: **no existe un endpoint que devuelva todos los logs de un proyecto en una sola llamada**. `get_time_logs` y `sync_task_hours` iteran tarea por tarea. Esto consume muchas llamadas y puede alcanzar el rate limit de Zoho (200 req/2 min).
+
+### 2. `addbulktimelogs` requiere `application/x-www-form-urlencoded`
+
+El endpoint `POST /portal/{id}/addbulktimelogs` **rechaza JSON** (`Content-Type: application/json`). Solo acepta form-urlencoded. El campo `log_object` debe ser un JSON serializado como string dentro del form body.
+
+```js
+// ✅ Correcto — usar postForm() de zoho-client.js
+zohoClient.postForm(`/portal/${PORTAL}/addbulktimelogs`, {
+  log_object: JSON.stringify([{ project_id, item_id: task_id, type: "task", date, hours, ... }])
+});
+
+// ❌ Incorrecto — post() envía JSON y retorna "Input Parameter Missing"
+zohoClient.post(`/portal/${PORTAL}/addbulktimelogs`, { log_object: [...] });
+```
+
+`zoho-client.js` expone `postForm(path, body)` específicamente para este caso. Es análogo a `postFormV2` pero para V3.
+
+### 3. PATCH a `owners_and_work` requiere `owners` y `work_type`
+
+Actualizar las horas planeadas de una tarea requiere incluir ambos campos obligatoriamente, aunque no se cambie al owner:
+
+```js
+// ✅ Correcto
+zohoClient.patch(path, {
+  owners_and_work: {
+    work_type:  "standard",       // REQUERIDO — sin esto: 400 "Input Parameter Missing"
+    total_work: "6:05",
+    unit:       "hours",
+    owners: [{ zpuid: "...", work_values: "6:05" }]  // REQUERIDO — sin esto: 400
+  }
+});
+
+// ❌ Incorrecto — owners_and_work sin owners ni work_type retorna 400
+zohoClient.patch(path, { owners_and_work: { total_work: "6:05" } });
+```
+
+Los owners deben obtenerse del campo `task.owners_and_work.owners` de la tarea existente para no perder asignaciones.
 
 ## Endpoints V3 disponibles pero no implementados como herramientas
 

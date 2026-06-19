@@ -546,49 +546,50 @@ server.tool(
 );
 
 // ── get_time_logs ─────────────────────────────────────────────────────────────
+// NOTA TÉCNICA: la API de Zoho requiere module:{id:task_id,type:"task"} por cada tarea.
+// No existe un endpoint que devuelva todos los logs de un proyecto en una sola llamada.
+// Este tool itera sobre las tareas del proyecto (filtradas por user si se pasa user_zpuid)
+// y agrega los logs de cada una. Para proyectos grandes puede ser lento.
 server.tool(
   "get_time_logs",
-  "Lista los registros de tiempo de un proyecto en un rango de fechas. Devuelve por cada entrada: owner, tarea, horas (log_hour), fecha, notas y estado de aprobación. Útil para reportes de horas trabajadas. Si no se pasan fechas, devuelve el mes actual. Para filtrar por usuario usa user_zpuid.",
+  "Lista los registros de tiempo de un proyecto. Itera sobre las tareas del proyecto y agrega sus logs en el rango de fechas. Si se pasa user_zpuid, solo consulta las tareas asignadas a ese usuario. Devuelve: fecha, owner, tarea, horas, estado de aprobación. Si no se pasan fechas devuelve el mes actual.",
   {
     project_id: z.string().describe("ID numérico del proyecto"),
     start_date: z.string().optional().describe("Fecha inicio YYYY-MM-DD (por defecto: primer día del mes actual)"),
     end_date:   z.string().optional().describe("Fecha fin YYYY-MM-DD (por defecto: hoy). Diferencia máxima: 6 meses"),
-    user_zpuid: z.string().optional().describe("zpuid del usuario para filtrar sus registros (obtenible con list_users)"),
+    user_zpuid: z.string().optional().describe("zpuid del usuario — si se pasa, solo consulta tareas asignadas a ese usuario"),
   },
   async ({ project_id, start_date, end_date, user_zpuid }) => {
-    const modulesRes = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/modules`);
-    const taskModule = (modulesRes.modules || []).find(m => m.module_name === "Task");
-    if (!taskModule) return text("No se encontró el módulo de tareas en este proyecto.");
-
     const now = new Date();
     const sd = start_date || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
     const ed = end_date   || now.toISOString().slice(0, 10);
 
-    const params = {
-      view_type:  "customdate",
-      start_date: sd,
-      end_date:   ed,
-      module:     JSON.stringify({ id: taskModule.module_id, type: "task" }),
-    };
-    if (user_zpuid) {
-      params.filter = JSON.stringify({
-        criteria: [{ field_name: "user", criteria_condition: "is", value: [user_zpuid] }],
-        pattern: "1",
+    const allTasks = await zohoClient.getAllPages(`/portal/${PORTAL}/projects/${project_id}/tasks`);
+    const openTasks = allTasks.filter(t => !t.is_completed && !t.status?.is_closed_type);
+    const tasks = user_zpuid
+      ? openTasks.filter(t => (t.owners_and_work?.owners || []).some(o => String(o.zpuid) === String(user_zpuid)))
+      : openTasks;
+    if (!tasks.length) return text("No se encontraron tareas abiertas.");
+
+    const allLogs = [];
+    for (const task of tasks) {
+      const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/timelogs`, {
+        view_type:  "customdate",
+        start_date: sd,
+        end_date:   ed,
+        module:     JSON.stringify({ id: task.id, type: "task" }),
       });
+      for (const day of r.time_logs || []) {
+        for (const log of day.log_details || []) allLogs.push(log);
+      }
     }
 
-    const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/timelogs`, params);
-    const days = r.time_logs || [];
-    if (!days.length) return text("No se encontraron registros de tiempo en ese rango.");
+    if (!allLogs.length) return text("No se encontraron registros de tiempo en ese rango.");
+    allLogs.sort((a, b) => a.date.localeCompare(b.date));
 
-    const total = r.log_hours?.total_hours || "N/A";
-    const lines = [`Total: ${total}`, ""];
-    for (const day of days) {
-      for (const log of day.log_details || []) {
-        lines.push(
-          `${log.date} | ${log.owner?.name || "N/A"} | ${log.module_detail?.name || "N/A"} | ${log.log_hour} | ${log.approval?.status || "N/A"}${log.notes ? " | " + log.notes.split("\n")[0] : ""}`
-        );
-      }
+    const lines = [];
+    for (const log of allLogs) {
+      lines.push(`${log.date} | ${log.owner?.name || "N/A"} | ${log.module_detail?.name || "N/A"} | ${log.log_hour} | ${log.approval?.status || "N/A"}${log.notes ? " | " + log.notes.split("\n")[0] : ""}`);
     }
     return text(lines.join("\n"));
   }
@@ -620,7 +621,7 @@ server.tool(
     };
     if (notes) entry.notes = notes;
 
-    const r = await zohoClient.post(`/portal/${PORTAL}/addbulktimelogs`, { log_object: [entry] });
+    const r = await zohoClient.postForm(`/portal/${PORTAL}/addbulktimelogs`, { log_object: JSON.stringify([entry]) });
     const logs = r.time_logs?.[0]?.log_details || [];
     if (logs.length) return text(`Tiempo registrado. ID: ${logs[0].id} | Horas: ${logs[0].log_hour}`);
     return text(`Respuesta: ${JSON.stringify(r)}`);
@@ -630,74 +631,74 @@ server.tool(
 // ── sync_task_hours ───────────────────────────────────────────────────────────
 server.tool(
   "sync_task_hours",
-  "Sincroniza las horas asignadas de las tareas de un proyecto con el tiempo real registrado en los time logs. Para cada tarea que tenga tiempo registrado, actualiza owners_and_work.total_work al total acumulado de horas logueadas. Útil para que las horas del equipo reflejen el trabajo real. Opcionalmente filtra por usuario con user_zpuid para sincronizar solo las tareas de una persona.",
+  "Para cada tarea CERRADA del proyecto con horas planeadas (owners_and_work.total_work > 0), crea un time log igual a total_work × factor. Uso principal: registrar el 95% de las horas planeadas al cierre de una tarea. Con user_zpuid solo procesa las tareas de ese usuario y crea los logs con ese owner. La fecha del log usa end_date de la tarea (o hoy si no tiene). NO reemplaza logs existentes — agrega un entry nuevo.",
   {
-    project_id:  z.string().describe("ID numérico del proyecto"),
-    user_zpuid:  z.string().optional().describe("zpuid del usuario para sincronizar solo sus tareas (obtenible con list_users). Sin este param sincroniza todas las tareas del proyecto."),
-    start_date:  z.string().optional().describe("Fecha inicio YYYY-MM-DD para considerar logs desde esa fecha (por defecto: hace 1 año)"),
-    end_date:    z.string().optional().describe("Fecha fin YYYY-MM-DD (por defecto: hoy)"),
+    project_id: z.string().describe("ID numérico del proyecto"),
+    user_zpuid: z.string().optional().describe("zpuid del usuario — solo procesa tareas cerradas asignadas a él y crea los logs con ese owner (obtenible con list_users)"),
+    factor:     z.number().min(0).max(2).optional().describe("Multiplicador sobre las horas planeadas (por defecto 1.0 = 100%). Ej: 0.95 para registrar el 95% de las horas planeadas."),
   },
-  async ({ project_id, user_zpuid, start_date, end_date }) => {
-    const modulesRes = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/modules`);
-    const taskModule = (modulesRes.modules || []).find(m => m.module_name === "Task");
-    if (!taskModule) return text("No se encontró el módulo de tareas en este proyecto.");
+  async ({ project_id, user_zpuid, factor = 1.0 }) => {
+    const today = new Date().toISOString().slice(0, 10);
 
-    const now = new Date();
-    const sd = start_date || new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString().slice(0, 10);
-    const ed = end_date   || now.toISOString().slice(0, 10);
-
-    const baseParams = {
-      view_type:  "customdate",
-      start_date: sd,
-      end_date:   ed,
-      module:     JSON.stringify({ id: taskModule.module_id, type: "task" }),
-      per_page:   200,
-    };
-    if (user_zpuid) {
-      baseParams.filter = JSON.stringify({
-        criteria: [{ field_name: "user", criteria_condition: "is", value: [user_zpuid] }],
-        pattern: "1",
-      });
-    }
-
-    // Paginar manualmente — la respuesta anida log_details dentro de time_logs por día
     const parseMinutes = (hhmm) => {
+      if (!hhmm) return 0;
       const [h, m] = String(hhmm).split(":").map(Number);
       return (h || 0) * 60 + (m || 0);
     };
 
-    const taskMinutes = new Map(); // task_id -> total minutos
-    let page = 1;
-    for (;;) {
-      const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/timelogs`, { ...baseParams, page });
-      for (const day of r.time_logs || []) {
-        for (const log of day.log_details || []) {
-          const tid = log.module_detail?.id;
-          if (!tid) continue;
-          taskMinutes.set(tid, (taskMinutes.get(tid) || 0) + parseMinutes(log.log_hour));
-        }
-      }
-      const hasNext = r.page_info?.has_next_page;
-      if (hasNext !== true && hasNext !== "true") break;
-      page++;
-    }
+    const allTasks = await zohoClient.getAllPages(`/portal/${PORTAL}/projects/${project_id}/tasks`);
+    const closedTasks = allTasks.filter(t => t.is_completed || t.status?.is_closed_type);
+    const tasks = user_zpuid
+      ? closedTasks.filter(t => (t.owners_and_work?.owners || []).some(o => String(o.zpuid) === String(user_zpuid)))
+      : closedTasks;
+    if (!tasks.length) return text("No se encontraron tareas cerradas para ese usuario en este proyecto.");
 
-    if (!taskMinutes.size) return text("No se encontraron registros de tiempo en ese rango.");
-
-    // Actualizar cada tarea con el total acumulado
+    const sleep = (ms) => new Promise(res => setTimeout(res, ms));
     const results = [];
-    for (const [taskId, minutes] of taskMinutes) {
-      const h = Math.floor(minutes / 60);
-      const m = minutes % 60;
-      const totalWork = `${h}:${String(m).padStart(2, "0")}`;
-      const t = await zohoClient.patch(
-        `/portal/${PORTAL}/projects/${project_id}/tasks/${taskId}`,
-        { owners_and_work: { total_work: totalWork, unit: "hours" } }
-      );
-      results.push(`${t?.name || taskId}: ${totalWork}${t?.id ? "" : " (error)"}`);
+    const skipped = [];
+    const errors = [];
+    let count = 0;
+
+    for (const task of tasks) {
+      const plannedMinutes = parseMinutes(task.owners_and_work?.total_work);
+      if (plannedMinutes === 0) { skipped.push(`${task.name} (sin horas planeadas)`); continue; }
+
+      const adjusted = Math.round(plannedMinutes * factor);
+      if (adjusted === 0) { skipped.push(`${task.name} (resultado 0 con factor ${factor})`); continue; }
+
+      const decimalHours = (adjusted / 60).toFixed(4);
+      const logDate = task.end_date ? task.end_date.slice(0, 10) : today;
+      const owner = user_zpuid || task.owners_and_work?.owners?.[0]?.zpuid || process.env.ZOHO_MY_USER_ID;
+
+      const entry = {
+        project_id,
+        item_id:     task.id,
+        type:        "task",
+        date:        logDate,
+        hours:       decimalHours,
+        bill_status: "Non Billable",
+        owner_zpuid: owner,
+      };
+
+      const r = await zohoClient.postForm(`/portal/${PORTAL}/addbulktimelogs`, { log_object: JSON.stringify([entry]) });
+      count++;
+      // Pausa cada 3 tareas para no saturar el rate limit (200 req/2min)
+      if (count % 3 === 0) await sleep(1500);
+      const logs = r.time_logs?.[0]?.log_details || [];
+      if (logs.length) {
+        const tw = task.owners_and_work?.total_work || "?";
+        results.push(`${task.name}: ${tw} planeadas → ${logs[0].log_hour} registradas`);
+      } else {
+        errors.push(`${task.name}: ${JSON.stringify(r).slice(0, 120)}`);
+      }
     }
 
-    return text(`Sincronizadas ${results.length} tarea(s):\n${results.join("\n")}`);
+    const pct = Math.round(factor * 100);
+    let out = `Procesadas ${tasks.length} tarea(s) cerradas al ${pct}% de horas planeadas.\nRegistradas: ${results.length} | Omitidas: ${skipped.length} | Errores: ${errors.length}`;
+    if (results.length) out += "\n\n" + results.join("\n");
+    if (errors.length) out += "\n\nErrores:\n" + errors.join("\n");
+    if (skipped.length) out += "\n\nOmitidas:\n" + skipped.join("\n");
+    return text(out);
   }
 );
 
