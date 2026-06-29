@@ -125,7 +125,7 @@ El ID es el mismo para todas las tareas del portal que tengan ese estado — sol
 
 ## Herramientas MCP Expuestas
 
-`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`, `get_task_attachments`, `disassociate_attachment`, `get_time_logs`, `add_time_log`, `sync_task_hours`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
+`list_projects`, `list_tasks`, `get_task`, `create_task`, `create_subtask`, `update_task`, `delete_task`, `list_comments`, `add_comment`, `update_comment`, `delete_comment`, `list_users`, `start_timer`, `stop_timer`, `list_task_fields`, `get_task_attachments`, `disassociate_attachment`, `get_time_logs`, `add_time_log`, `sync_task_hours`, `get_pending_approvals`, `approve_time_logs`. Todas las herramientas reciben `project_id` como parámetro requerido, excepto `list_projects`.
 
 ### `list_tasks`
 
@@ -173,6 +173,20 @@ Para cada tarea **cerrada** del proyecto que tenga horas planeadas (`owners_and_
 - La fecha del log es `end_date` de la tarea (si existe), si no usa la fecha de hoy.
 - **No reemplaza logs existentes** — crea un nuevo entry adicional. Si la tarea ya tiene logs del timer, este tool agrega un log extra.
 - Si `total_work` es `"0:00"` o no existe, la tarea se omite.
+
+### Aprobación de registros de tiempo (`get_pending_approvals`, `approve_time_logs`)
+
+Flujo típico como líder de equipo:
+
+1. `get_pending_approvals project_id=X` — lista todos los logs con `approval_status = "Unapproved"`, con su `log_id`, fecha, usuario, tarea y horas.
+2. `approve_time_logs project_id=X` — aprueba **todos** los pendientes del proyecto en el rango de fechas.
+   - Con `log_ids=[...]` aprueba solo esos IDs específicos.
+   - Con `user_zpuid=...` filtra por usuario antes de aprobar.
+   - Con `approval_status="Rejected"` rechaza en lugar de aprobar.
+
+Ambas herramientas iteran tarea por tarea (misma limitación que `get_time_logs`). La aprobación usa `PATCH /portal/{id}/logs` en bulk — una sola llamada para todos los logs encontrados.
+
+El campo `approval_status` en los filtros acepta: `"Approved"`, `"Unapproved"`, `"Rejected"`.
 
 ### Registros de tiempo: timer vs manual
 
@@ -317,7 +331,7 @@ Existen en la API pero no están expuestos como tools MCP. Si se necesitan en el
 | `/associate-attachments` | POST | Sube y asocia archivo a una entidad en un paso (max 20 MB, multipart); misma limitación de binario |
 | `/entity-attachments` | POST | Asocia un archivo ya subido a WorkDrive (via `thirdparty_id`) a una entidad; útil si se tiene el WorkDrive resource ID |
 | `/attachments/{id}` (GET) | GET | Detalle de un adjunto específico por `attachment_id` |
-| `/logs` (PATCH) | PATCH | Actualiza uno o varios registros de tiempo existentes; body: array de `{ id, date, hours, notes, bill_status, ... }` |
+| `/logs` (PATCH) | PATCH | Actualiza campos de logs existentes (horas, notas, bill_status); `approve_time_logs` ya usa este endpoint para `approval_status` |
 | `/(timelogs)/bulkdelete` | DELETE | Elimina registros de tiempo; body: `{ id, module: { id, type } }` |
 | `/projects/{id}/timelogs/approver` (GET) | GET | Obtiene el aprobador por defecto de registros de tiempo de un usuario en el proyecto |
 | `/projects/{id}/timelogs/approver` (PATCH) | PATCH | Cambia el aprobador por defecto; body: `{ user: zpuid, approver: zpuid }` |
