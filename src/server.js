@@ -797,7 +797,7 @@ server.tool(
     // Enviarlo como objeto {id, type} devuelve PATTERN_NOT_MATCHED.
     const payload = toProcess.map(l => ({
       id: l.id,
-      module: l.module_detail?.type || l.type,
+      module: l.type || l.module_detail?.type, // en issues module_detail.type es "bug", que la API rechaza
       approval_status,
     }));
 

@@ -169,7 +169,7 @@ async function aprobarLote(portal, logs, estado = "Approved") {
     const lote = logs.slice(i, i + CHUNK);
     const payload = lote.map(l => ({
       id: l.id,
-      module: l.module_detail?.type || l.type,
+      module: l.type || l.module_detail?.type, // en issues module_detail.type es "bug", que la API rechaza
       approval_status: estado,
     }));
     try {
@@ -484,7 +484,8 @@ if (!pendientes.length) {
   const { ok, errores } = await aprobarLote(portal, pendientes);
   console.log(`  aprobados=${ok} errores=${errores.length}`);
   errores.forEach(e => console.error("  ERROR", e));
-  for (const l of pendientes) if (l.approval) l.approval.status = "Approved";
+  // Con errores no se sabe qué lote pasó: no marcar nada como aprobado en el informe
+  if (!errores.length) for (const l of pendientes) if (l.approval) l.approval.status = "Approved";
   resumen = `**Aprobación:** se aprobaron **${ok} de ${pendientes.length} registros** que estaban en \`Pending\`. ` +
             `El equipo cierra el periodo con **${equipo.length} registros**${errores.length ? `, con ${errores.length} error(es) de aprobación` : ", todos aprobados"}.`;
 }
