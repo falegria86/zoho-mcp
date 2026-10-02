@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Liberación TLJ-CAT</title>
+<style>
+  :root{
+    --slate:#3C4E5D;
+    --slate-dark:#2C3A46;
+    --gold:#C7B383;
+    --gold-soft:#EFE8D6;
+    --ink:#22303a;
+    --muted:#6b7a85;
+    --line:#dfe4e8;
+    --bg-soft:#f6f8f9;
+    --ok:#2f855a;
+    --ok-bg:#e6f4ec;
+    --warn:#b7791f;
+    --warn-bg:#fbf3e2;
+    --crit:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    font-size:12px;
+    line-height:1.5;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .page{padding:0 34px;}
+
+  /* ---------- Portada ---------- */
+  .cover{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    background:linear-gradient(160deg,#fdfdfc 0%,var(--gold-soft) 100%);
+    page-break-after:always;
+    padding:40px;
+  }
+  .cover img{width:280px;max-width:70%;margin-bottom:40px;}
+  .cover .kicker{
+    letter-spacing:3px;text-transform:uppercase;color:var(--gold);
+    font-weight:700;font-size:13px;margin-bottom:10px;
+  }
+  .cover h1{
+    color:var(--slate);font-size:34px;margin:0 0 8px;font-weight:800;line-height:1.15;
+  }
+  .cover h2{
+    color:var(--muted);font-size:16px;font-weight:500;margin:0 0 36px;
+  }
+  .cover .meta{
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:20px 28px;display:grid;grid-template-columns:auto auto;gap:8px 32px;
+    text-align:left;box-shadow:0 6px 24px rgba(60,78,93,.08);
+  }
+  .cover .meta div{font-size:12.5px;}
+  .cover .meta b{color:var(--slate);}
+  .cover .version{
+    margin-top:20px;background:var(--slate);color:#fff;padding:8px 22px;border-radius:8px;
+    font-size:15px;font-weight:700;letter-spacing:1px;
+  }
+  .cover .badge{
+    margin-top:16px;background:var(--ok-bg);color:var(--ok);
+    padding:8px 18px;border-radius:30px;font-weight:700;font-size:12.5px;
+  }
+
+  /* ---------- Encabezado de secciones ---------- */
+  h2.section{
+    color:var(--slate);font-size:18px;border-bottom:3px solid var(--gold);
+    padding-bottom:6px;margin:28px 0 14px;
+  }
+  h3.item{
+    color:var(--slate-dark);font-size:13.5px;margin:20px 0 6px;
+    padding-left:10px;border-left:4px solid var(--gold);
+  }
+  p{margin:6px 0;}
+
+  /* ---------- Tablas ---------- */
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:10.5px;}
+  th{background:var(--slate);color:#fff;text-align:left;padding:7px 9px;font-weight:600;}
+  td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  table.summary td:first-child{text-align:center;font-weight:700;color:var(--slate);width:22px;}
+
+  /* ---------- Chips de estado ---------- */
+  .chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+  .chip.ok{background:var(--ok-bg);color:var(--ok);}
+  .chip.warn{background:var(--warn-bg);color:var(--warn);}
+  .chip.crit{background:#fbe6e3;color:var(--crit);}
+  .chip.type{background:#e8eef2;color:var(--slate);}
+
+  /* ---------- Ficha de item ---------- */
+  .card{border:1px solid var(--line);border-radius:10px;padding:2px 16px 12px;margin-bottom:6px;background:#fff;page-break-inside:avoid;}
+  .metaline{font-size:10.5px;color:var(--muted);margin:2px 0 8px;}
+  .metaline b{color:var(--slate-dark);}
+  .reviewer{background:var(--gold-soft);border-radius:6px;padding:4px 10px;font-size:10.5px;display:inline-block;margin:4px 0;}
+  .reviewer b{color:var(--slate-dark);}
+  ul{margin:6px 0;padding-left:18px;}
+  li{margin:2px 0;}
+  code{background:#eef2f4;padding:1px 5px;border-radius:4px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:var(--slate-dark);}
+
+  .callout{border-radius:8px;padding:10px 14px;margin:10px 0;font-size:11px;}
+  .callout.warn{background:var(--warn-bg);border-left:4px solid var(--warn);}
+  .callout.info{background:#eaf1f6;border-left:4px solid var(--slate);}
+
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:5px 0 5px 26px;position:relative;border-bottom:1px dashed var(--line);}
+  .checklist li:before{content:"\2610";position:absolute;left:4px;color:var(--gold);font-size:14px;top:3px;}
+
+  .foot{margin-top:26px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:10px;text-align:center;}
+  .avoid{page-break-inside:avoid;}
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<section class="cover">
+  <img src="../../../assets/sigob-5.png" alt="SIGOB">
+  <div class="kicker">Documento de Liberación de Versión</div>
+  <h1>TLJ-CAT · Catastro Tlajomulco</h1>
+  <h2>Sistema Integral de Gobierno — Módulo SIR / OPENSIR</h2>
+  <div class="meta">
+    <div><b>Portal Zoho:</b> sigobproyectos</div>
+    <div><b>Proyecto:</b> 106599000030094011</div>
+    <div><b>Fecha:</b> 20 de julio de 2026</div>
+    <div><b>Elementos:</b> 11 (5 issues + 6 tareas)</div>
+    <div><b>Repos:</b> opensir · OPENSIR-FRONTEND</div>
+    <div><b>Validación:</b> Equipo de Operaciones</div>
+  </div>
+  <div class="version">Versión: Ver.260721.034</div>
+  <div class="badge">✓ 11/11 elementos revisados y validados por Operaciones — Listos para producción</div>
+</section>
+
+<div class="page">
+
+<div class="callout info">
+  <b>Nota sobre la validación:</b> los elementos de esta liberación <b>no fueron revisados por un equipo de QA</b>. La validación funcional fue realizada por el <b>equipo de Operaciones</b> (campo <i>Revisor de operaciones</i> de cada tarea/issue) sobre el ambiente de pruebas (QA). El responsable de la revisión de cada elemento se indica en la tabla resumen y en su ficha.
+</div>
+
+<!-- RESUMEN -->
+<h2 class="section">1. Resumen de elementos</h2>
+<table class="summary">
+  <thead><tr><th>#</th><th>ID Zoho</th><th>Tipo</th><th>Título</th><th>Sev./Prior.</th><th>Revisor (Operaciones)</th><th>Estado</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>106599000037549184</td><td><span class="chip type">Issue</span></td><td>No permite cargar archivo en TRM apertura de cuentas condominio</td><td><span class="chip crit">Crítico</span></td><td>Jorge Ivan González</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>2</td><td>106599000037455043</td><td><span class="chip type">Issue</span></td><td>Captura de porcentajes con decimales que contienen 0 (Transmisión Patrimonial)</td><td>Alta</td><td>Jorge Ivan González</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>3</td><td>106599000037349304</td><td><span class="chip type">Tarea</span></td><td>No se respeta la configuración de Accesorios Omitidos</td><td>Alta</td><td>Julio Gonzalez</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>4</td><td>106599000036780341</td><td><span class="chip type">Tarea</span></td><td>Tasa marginal de acuerdo a la fecha de otorgamiento</td><td>Alta</td><td>Karina G. Monroy Cervantes</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>5</td><td>106599000037481075</td><td><span class="chip type">Tarea</span></td><td>Ajustes con Código postal (frontend)</td><td>Alta</td><td>Karina G. Monroy Cervantes</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>6</td><td>106599000037409424</td><td><span class="chip type">Issue</span></td><td>Detalle con JSON de predios</td><td>Alta</td><td>Karina G. Monroy Cervantes</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>7</td><td>106599000037455073</td><td><span class="chip type">Issue</span></td><td>Asignación de Código Postal al capturar colonia como texto</td><td>Alta</td><td>Jorge Ivan González</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>8</td><td>106599000037541276</td><td><span class="chip type">Tarea</span></td><td>Agregar campos en BD (tabla Recibos)</td><td>Alta</td><td>Jorge Ivan González</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>9</td><td>106599000037541279</td><td><span class="chip type">Tarea</span></td><td>Adecuar el API de SIMUN</td><td>Alta</td><td>Jorge Ivan González</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>10</td><td>106599000037544155</td><td><span class="chip type">Tarea</span></td><td>Adecuar formulador para obtener <code>es_ejidal</code> del predio</td><td>Alta</td><td>Victor M. Prieto Mercado</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>11</td><td>106599000037541262</td><td><span class="chip type">Issue</span></td><td>No actualiza cartera en ciertos predios</td><td>Alta</td><td>Jorge Ivan González</td><td><span class="chip ok">Prod</span></td></tr>
+  </tbody>
+</table>
+
+<!-- DETALLE -->
+<h2 class="section">2. Detalle por elemento</h2>
+
+<div class="card">
+  <h3 class="item">1. No permite cargar archivo en TRM apertura de cuentas condominio</h3>
+  <div class="metaline"><b>Issue</b> 106599000037549184 · Severidad: <span class="chip crit">Crítico</span> · Área: Otros</div>
+  <p>En el paso <b>Carga masiva de cuentas</b>, al cargar el archivo y presionar <b>Guardar</b>, aparece un mensaje de error (en Producción). En QA la pantalla se quedaba cargando sin permitir guardar.</p>
+  <p><b>Causa raíz:</b> la librería de lectura del Excel interpretaba mal los decimales (ej. <code>indiviso</code> = <code>1.631</code>). Se corrige respetando la cantidad de decimales por campo en las celdas del Excel:</p>
+  <ul>
+    <li><code>superficie_total_del_terreno</code>, <code>valor_del_terreno</code>, <code>area_titulo</code>, <code>superficie_de_la_construccion</code>, <code>valor_de_la_construccion</code>, <code>valor_catastral</code>, <code>valor_catastral_calculado</code> → <b>3</b></li>
+    <li><code>tasa</code> → <b>6</b> · <code>indiviso</code> → <b>8</b> · <code>porcentaje_demerito</code> → <b>4</b></li>
+    <li><code>frente</code>, <code>profundidad</code>, <code>perimetro</code>, <code>factor_merito_demerito</code>, <code>porcentaje_traslado</code> → <b>2</b></li>
+  </ul>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Jorge Ivan González</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">2. Captura de porcentajes con decimales que contienen 0 (Transmisión Patrimonial)</h3>
+  <div class="metaline"><b>Issue</b> 106599000037455043 · Severidad: Alta · Área: Otros</div>
+  <p>En Transmisiones Patrimoniales, paso <b>Propietarios</b>, el campo <b>Porcentaje</b> no permitía capturar decimales cuyo primer dígito decimal fuera <code>0</code> (ej. <code>45.05</code>): al escribir el <code>0</code> se eliminaba el punto. Valores como <code>45.15</code> sí funcionaban.</p>
+  <p><b>Esperado:</b> aceptar cualquier decimal válido (<code>45.05</code>, <code>12.01</code>, <code>99.09</code>).</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Jorge Ivan González</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">3. No se respeta la configuración de Accesorios Omitidos</h3>
+  <div class="metaline"><b>Tarea</b> 106599000037349304 · Prioridad: Alta · Responsables: Alejandro Leon, Juan Pablo</div>
+  <p>Al consultar cuentas en Caja se seguían quitando los accesorios, sin respetar la configuración de <b>Accesorios Omitidos</b> (aplicable del 1 de enero al 30 de junio de 2026).</p>
+  <p><b>Solución:</b> faltaba un filtro para descartar las configuraciones de omisión de accesorios (frontend). <b>PR:</b> <code>OPENSIR-FRONTEND/pull/1921</code>.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Julio Gonzalez</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">4. Tasa marginal de acuerdo a la fecha de otorgamiento</h3>
+  <div class="metaline"><b>Tarea</b> 106599000036780341 · Prioridad: Alta · Responsable: alfredo.aragon</div>
+  <p>La tasa marginal debe tomarse del periodo del campo <code>fecha_de_otorgamiento</code> (y del valor fiscal).</p>
+  <div class="callout warn"><b>Dependencia:</b> requiere valores fiscales de años anteriores ya migrados; de lo contrario la tasa sale vacía. Ya migrado y validado con ejemplos.</div>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Karina Guadalupe Monroy Cervantes</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA (tasa correcta; conflictos del PR resueltos). Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">5. Ajustes con Código postal (frontend)</h3>
+  <div class="metaline"><b>Tarea</b> 106599000037481075 · Prioridad: Alta · Responsable: alfredo.aragon</div>
+  <p>Enviar <code>Null</code> en el código postal donde llenan los partícipes en el trámite de Transmisión Patrimonial y en el apartado de Contribuyentes al modificar su dirección. Trabaja en conjunto con el issue de backend <b>#7</b>.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Karina Guadalupe Monroy Cervantes</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA (TRM de transmisión patrimonial y padrón de contribuyentes). Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">6. Detalle con JSON de predios</h3>
+  <div class="metaline"><b>Issue</b> 106599000037409424 · Severidad: Alta · Área: Backend</div>
+  <p>El backend obtenía el <code>id</code> del predio solo de <i>partícipes</i>; si el trámite no movía a alguno, truena al no poder obtener el <code>id</code>.</p>
+  <p><b>Solución:</b> en <code>catastro/views/participe.py</code> usar todos los arrays posibles y, si no se encuentra un <code>id</code>, no afectar nada (sin error). <b>PR:</b> <code>opensir/pull/4906</code>.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Karina Guadalupe Monroy Cervantes</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">7. Asignación de Código Postal al capturar colonia como texto</h3>
+  <div class="metaline"><b>Issue</b> 106599000037455073 · Severidad: Alta · Área: Otros (Backend)</div>
+  <p>En el Padrón de Contribuyentes (Domicilio Fiscal), al capturar la colonia como <i>"Colonia texto"</i> —o al agregar dirección de un nuevo propietario en Transmisión Patrimonial— el sistema asignaba automáticamente el CP <b>69350</b> sin importar el texto. Ese CP corresponde a <i>Santa Magdalena Jicotlán, Oaxaca</i>, mostrando la dirección en la entidad incorrecta en Cajas.</p>
+  <p><b>PR:</b> <code>opensir/pull/4907</code> · Complementa la tarea de frontend <b>#5</b>.</p>
+  <div class="callout warn"><b>⚠ Contiene migraciones de base de datos.</b></div>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Jorge Ivan González</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">8. Agregar campos en BD (tabla Recibos)</h3>
+  <div class="metaline"><b>Tarea</b> 106599000037541276 · Prioridad: Alta · Responsable: Juan Pablo</div>
+  <p>Agregar 3 nuevos campos en la tabla <b>Recibos</b>:</p>
+  <ul>
+    <li><code>FOLIO INGRESOS</code> → Texto</li>
+    <li><code>DONATIVO</code> → Numérico (30,2)</li>
+    <li><code>CAPTURISTA</code> → Texto</li>
+  </ul>
+  <p><b>PR:</b> <code>opensir/pull/4910</code>.</p>
+  <div class="callout warn"><b>⚠ Contiene migraciones de base de datos.</b></div>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Jorge Ivan González</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">9. Adecuar el API de SIMUN</h3>
+  <div class="metaline"><b>Tarea</b> 106599000037541279 · Prioridad: Alta · Responsable: Juan Pablo</div>
+  <p>Al realizar un pago en Caja SIMUN, guardar en la tabla <b>Recibos</b> del SIR los datos nuevos <code>FOLIO INGRESOS</code>, <code>DONATIVO</code> y <code>CAPTURISTA</code> (depende de la tarea #8). <b>PR:</b> incluido en <code>opensir/pull/4910</code>.</p>
+  <div class="callout warn"><b>⚠ Acción externa (SIMUN):</b> coordinar con Alejandro para que agreguen al <i>body</i> de los endpoints de registro de pago: <code>"donativo": 0</code>, <code>"folio_ingreso": ""</code>, <code>"capturista": ""</code>.<br>Endpoints: <code>/catastro/pago-predio/registrar-pago/</code> y <code>/catastro/pago-tramite/registrar-pago/</code>.</div>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Jorge Ivan González</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">10. Adecuar formulador para obtener <code>es_ejidal</code> del predio</h3>
+  <div class="metaline"><b>Tarea</b> 106599000037544155 · Prioridad: Alta · Responsable: Juan Pablo</div>
+  <p>Obtener el campo <code>es_ejidal</code> del predio para adecuar la fórmula de cálculo del impuesto predial. La forma <code>"Predio.es_ejidal"</code> arrojaba el error <i>"Predio object has no attribute es_ejidal"</i>. Se ajustó el formulador y se configuraron los tipos de cargo.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Victor Manuel Prieto Mercado</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">11. No actualiza cartera en ciertos predios</h3>
+  <div class="metaline"><b>Issue</b> 106599000037541262 · Severidad: Alta · Área: Otros</div>
+  <p>Al actualizar cartera desde el padrón de predios, ciertas cuentas muestran error. Cuentas de ejemplo: <code>93R935</code>, <code>132R1465</code>, <code>93R927</code>.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Jorge Ivan González</div>
+  <p><b>Validación:</b> Revisado y validado por Operaciones sobre el ambiente QA. Listo para producción.</p>
+</div>
+
+<!-- DESPLIEGUE -->
+<h2 class="section">3. Consideraciones de despliegue</h2>
+
+<div class="avoid">
+<h3 class="item">3.1 Migraciones de base de datos</h3>
+<div class="callout warn">Los siguientes PRs <b>contienen migraciones</b> y deben ejecutarse en orden:
+<ul><li><code>opensir/pull/4907</code> — Asignación de Código Postal (#7)</li>
+<li><code>opensir/pull/4910</code> — Nuevos campos en tabla Recibos (#8 y #9)</li></ul></div>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.2 Dependencias de datos previas</h3>
+<p><b>Tarea #4 (Tasa marginal):</b> requiere valores fiscales de años anteriores migrados antes de liberar. <i>(Ya migrado según Zoho.)</i></p>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.3 Coordinación con terceros (SIMUN)</h3>
+<p><b>Tarea #9:</b> el SIR ya guarda <code>folio_ingreso</code>, <code>donativo</code> y <code>capturista</code>, pero <b>SIMUN debe agregar estos campos al body</b> de sus endpoints de registro de pago. Sin este cambio, los datos llegarán vacíos.</p>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.4 Acción operativa (no código)</h3>
+<p><b>Issue #1:</b> los <b>archivos Excel</b> de carga masiva deben configurar las celdas con la cantidad de decimales indicada por campo (ver detalle del elemento #1). Comunicar a usuarios operativos.</p>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.5 Repositorios y PRs incluidos</h3>
+<table>
+  <thead><tr><th>PR</th><th>Repositorio</th><th>Elemento</th><th>Migraciones</th></tr></thead>
+  <tbody>
+    <tr><td>#1921</td><td>OPENSIR-FRONTEND</td><td>Accesorios Omitidos (#3)</td><td>No</td></tr>
+    <tr><td>#4906</td><td>opensir</td><td>Detalle JSON de predios (#6)</td><td>No</td></tr>
+    <tr><td>#4907</td><td>opensir</td><td>Asignación Código Postal (#7)</td><td><span class="chip warn">Sí</span></td></tr>
+    <tr><td>#4910</td><td>opensir</td><td>Campos Recibos / API SIMUN (#8, #9)</td><td><span class="chip warn">Sí</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- CHECKLIST -->
+<h2 class="section">4. Checklist de liberación</h2>
+<ul class="checklist avoid">
+  <li>Aplicar PR #4907 (migraciones)</li>
+  <li>Aplicar PR #4910 (migraciones)</li>
+  <li>Aplicar PR #4906 (backend)</li>
+  <li>Desplegar PR #1921 (frontend)</li>
+  <li>Verificar migración previa de valores fiscales de años anteriores (tarea #4)</li>
+  <li>Coordinar y confirmar cambios de SIMUN en endpoints de pago (tarea #9)</li>
+  <li>Comunicar a usuarios el formato de decimales del Excel de carga masiva (issue #1)</li>
+  <li>Validación final por el responsable de cada tarea / issue (Revisor de operaciones)</li>
+</ul>
+
+<div class="foot">
+  Documento generado desde Zoho Projects el 20 de julio de 2026 · Versión Ver.260721.034 · Portal sigobproyectos · Proyecto 106599000030094011<br>
+  Validación realizada por el equipo de Operaciones — verificar cada punto antes del despliegue en producción.
+</div>
+
+</div>
+</body>
+</html>

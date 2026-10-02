@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Validacion DevOps e Infra NAY-ST</title>
+<style>
+  :root{
+    --slate:#3C4E5D; --slate-dark:#2C3A46; --gold:#C7B383; --gold-soft:#EFE8D6;
+    --ink:#22303a; --muted:#6b7a85; --line:#dfe4e8; --bg-soft:#f6f8f9;
+    --ok:#2f855a; --ok-bg:#e6f4ec; --warn:#b7791f; --warn-bg:#fbf3e2;
+    --crit:#c0392b; --crit-bg:#fbeae8; --high:#d97706; --high-bg:#fdf0e3;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       color:var(--ink);font-size:12px;line-height:1.5;
+       -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page{padding:0 34px;}
+  .cover{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+         text-align:center;background:linear-gradient(160deg,#fdfdfc 0%,var(--gold-soft) 100%);
+         page-break-after:always;padding:40px;}
+  .cover img{width:260px;max-width:68%;margin-bottom:30px;}
+  .cover .kicker{letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;font-size:13px;margin-bottom:10px;}
+  .cover h1{color:var(--slate);font-size:29px;margin:0 0 8px;font-weight:800;line-height:1.15;max-width:660px;}
+  .cover h2{color:var(--muted);font-size:15px;font-weight:500;margin:0 0 26px;}
+  .cover .meta{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 26px;
+               display:grid;grid-template-columns:auto auto;gap:7px 30px;text-align:left;
+               box-shadow:0 6px 24px rgba(60,78,93,.08);}
+  .cover .meta div{font-size:12.5px;}
+  .cover .meta b{color:var(--slate);}
+  .cover .verdict{margin-top:20px;background:var(--slate);color:#fff;padding:10px 26px;border-radius:8px;
+                  font-size:14px;font-weight:800;letter-spacing:.5px;}
+  h2.section{color:var(--slate);font-size:18px;border-bottom:3px solid var(--gold);padding-bottom:6px;margin:26px 0 12px;}
+  h3.item{color:var(--slate-dark);font-size:14px;margin:16px 0 6px;padding-left:10px;border-left:4px solid var(--gold);}
+  h3.item.crit{border-left-color:var(--crit);}
+  h3.item.high{border-left-color:var(--high);}
+  h3.item.med{border-left-color:var(--warn);}
+  h3.item.ok{border-left-color:var(--ok);}
+  h4{color:var(--slate);font-size:11px;margin:11px 0 3px;text-transform:uppercase;letter-spacing:.5px;}
+  p{margin:6px 0;}
+  table{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:10.5px;}
+  th{background:var(--slate);color:#fff;text-align:left;padding:7px 9px;font-weight:600;}
+  td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  td.c,th.c{text-align:center;white-space:nowrap;}
+  table.valida td:first-child{width:22%;font-weight:600;color:var(--slate);}
+  table.pide td:first-child{width:34px;text-align:center;font-weight:800;color:#fff;background:var(--slate);}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-weight:700;font-size:9.5px;white-space:nowrap;}
+  .pill.crit{background:var(--crit-bg);color:var(--crit);}
+  .pill.high{background:var(--high-bg);color:var(--high);}
+  .pill.med{background:var(--warn-bg);color:var(--warn);}
+  .pill.ok{background:var(--ok-bg);color:var(--ok);}
+  .callout{background:var(--bg-soft);border-left:4px solid var(--gold);padding:10px 14px;margin:10px 0;font-size:11px;}
+  .callout.crit{background:var(--crit-bg);border-left-color:var(--crit);}
+  .callout.warn{background:var(--warn-bg);border-left-color:var(--warn);}
+  .callout.ok{background:var(--ok-bg);border-left-color:var(--ok);}
+  .avoid{page-break-inside:avoid;}
+  .brk{page-break-before:always;}
+  code{background:#eef2f4;padding:1px 5px;border-radius:3px;font-size:10px;color:var(--slate-dark);}
+  ul{margin:5px 0 5px 18px;padding:0;}
+  li{margin:3px 0;}
+  .lead{font-size:12.5px;color:var(--slate-dark);}
+  .foot{color:var(--muted);font-size:10px;font-style:italic;margin-top:8px;}
+  a{color:var(--slate);}
+  .url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;color:#4a6b8a;word-break:break-all;}
+  .ficha{border:1px solid var(--line);border-radius:8px;padding:0 14px 12px;margin:14px 0;page-break-inside:avoid;}
+  .ficha h3.item{margin-top:14px;}
+  .cita{border-left:3px solid var(--muted);padding:4px 0 4px 10px;margin:6px 0;color:var(--slate-dark);font-style:italic;font-size:10.5px;}
+  .cita b{font-style:normal;}
+  ol.pasos{margin:6px 0 6px 20px;}
+  ol.pasos li{margin:7px 0;}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <img src="../../../assets/sigob-5.png" alt="SIGOB">
+  <div class="kicker">Solicitud de validacion</div>
+  <h1>Validacion de DevOps e Infraestructura antes de salir a produccion</h1>
+  <h2>Ecosistema Hacienda Nayarit &middot; NAY-ING-STE &middot; Hito de remediacion de calidad y seguridad</h2>
+  <div class="meta">
+    <div><b>Hito en Zoho</b></div><div class="url">projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037479054</div>
+    <div><b>Que se pide</b></div><div>Validar 4 temas en pruebas internas y valorar 4 sin iniciar</div>
+    <div><b>Base del analisis</b></div><div>14 subtareas, 64 comentarios y 11 PRs</div>
+    <div><b>Fuentes tecnicas</b></div><div>SonarQube, pentest y Lighthouse (2026-07)</div>
+    <div><b>Fecha</b></div><div>2026-09-08</div>
+  </div>
+  <div class="verdict">DIRIGIDO A DEVOPS E INFRAESTRUCTURA</div>
+</div>
+
+<div class="page">
+
+<h2 class="section">Por que les llega esto</h2>
+<p class="lead">El hito de remediacion tiene 14 subtareas. Al revisar los comentarios de cada una aparecen <b>cuatro temas que dependen de infraestructura y que hoy nadie ha cerrado</b>, mas cuatro que estan sin iniciar y necesitan su valoracion. Dos de ellos ya fueron consultados a infra en Zoho y quedaron sin respuesta definitiva.</p>
+
+<h2 class="section">Lo que necesitamos de ustedes</h2>
+<table class="pide avoid">
+  <thead><tr><th class="c">#</th><th>Peticion</th><th class="c">Estado hoy</th><th class="c">Riesgo si no se valida</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><b>Confirmar el comportamiento de HTTPS en productivo con el balanceador Huawei.</b> Infra ya dijo en Zoho que no esta 100% seguro</td><td class="c">Pruebas internas</td><td class="c"><span class="pill crit">Sitio caido</span></td></tr>
+    <tr><td>2</td><td><b>Definir donde se emiten las cabeceras de seguridad</b> (nginx o Django) y con que valores. Hoy solo consta una de cinco</td><td class="c">Pruebas internas</td><td class="c"><span class="pill crit">Cobro caido</span></td></tr>
+    <tr><td>3</td><td><b>Validar el rate limiting del webhook de NetPay:</b> quedo en 10 peticiones por minuto por IP</td><td class="c">Pruebas internas</td><td class="c"><span class="pill crit">Pagos sin conciliar</span></td></tr>
+    <tr><td>4</td><td><b>Revisar la configuracion de nginx del iframe de la pasarela.</b> Ya provoco una falla el 25 de agosto</td><td class="c">Listo para QA</td><td class="c"><span class="pill high">Cobro caido</span></td></tr>
+    <tr><td>5</td><td><b>Tomar la restriccion de CORS.</b> Ya esta asignada a Miguel Angel Ramos desde el 21 de julio, sin arrancar</td><td class="c">No iniciada</td><td class="c"><span class="pill high">Fuga de datos</span></td></tr>
+    <tr><td>6</td><td><b>Retomar el bloqueo del reporteador ASP.NET.</b> Se cancelo por ser tema de firewall, no porque se resolviera</td><td class="c">Cancelada</td><td class="c"><span class="pill high">App interna expuesta</span></td></tr>
+    <tr><td>7</td><td><b>Definir quien ejecuta la rotacion de las llaves NetPay de produccion.</b> Sin un solo comentario en Zoho</td><td class="c">No iniciada</td><td class="c"><span class="pill crit">Riesgo financiero</span></td></tr>
+    <tr><td>8</td><td><b>Valorar las palancas de infraestructura para el rendimiento</b> del portal publico: compresion, cache, CDN e imagenes</td><td class="c">No iniciada</td><td class="c"><span class="pill med">Experiencia</span></td></tr>
+  </tbody>
+</table>
+
+<div class="callout crit"><b>El punto mas urgente.</b> El 14 de agosto Arlethe Mora pregunto en Zoho si el cambio de nginx era correcto. Miguel Angel Ramos respondio:
+<div class="cita">"en el servidor de pruebas el cambio deberia funcionar correctamente, ya que el balanceo lo realiza Nginx y tenemos control de que el acceso se maneja mediante HTTPS. En productivo, en teoria tambien deberia funcionar, ya que el balanceador de Huawei es el que gestiona el certificado y la conexion externa es HTTPS. <b>Sin embargo, en ese punto no estoy 100 % seguro</b>"</div>
+Esa duda sigue abierta desde entonces y la subtarea sigue en pruebas internas. Es exactamente el escenario que puede dejar el sitio inaccesible.</div>
+
+</div>
+
+<div class="page brk">
+<h2 class="section">Lo que esta en pruebas internas: que se hizo y que falta</h2>
+<p class="lead">Reconstruido a partir de los comentarios de cada subtarea. Lo marcado como pendiente es lo que <b>no consta</b> en Zoho: puede estar hecho y sin registrar, y por eso hace falta confirmarlo.</p>
+
+<div class="ficha">
+<h3 class="item crit">1 &middot; Forzar HTTPS en redirects y paginacion DRF</h3>
+<p class="url">projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037475081</p>
+<h4>Que se hizo (segun comentarios)</h4>
+<ul>
+  <li>Se configuro <code>USE_X_FORWARDED_HOST = True</code> en <code>production.py</code> y <code>development.py</code> para que la paginacion DRF genere URLs https. Arlethe Mora, 27-jul.</li>
+  <li>Se ajusto la configuracion para que el servidor mande https y agregue <code>/api</code> en la URL. PR <span class="url">github.com/sigob-open-source/nay_opensir/pull/116</span>, 13-ago.</li>
+  <li>Se modifico un archivo de configuracion de <b>nginx</b>. PR <span class="url">github.com/sigob-open-source/nay_opensir/pull/101</span>.</li>
+</ul>
+<h4>Que falta o no consta</h4>
+<ul>
+  <li><b>La validacion en productivo.</b> Arlethe lo dijo desde el 27-jul: <i>"Esta es la prueba en local pero se necesitaria confirmar en el servidor"</i>. Infra respondio que en productivo no esta seguro por el balanceador Huawei.</li>
+  <li><b>No consta que se haya activado <code>SECURE_SSL_REDIRECT</code></b>, que es lo que pide textualmente el criterio de aceptacion. Lo que aparece en comentarios es <code>USE_X_FORWARDED_HOST</code>, que resuelve la generacion de URLs pero no fuerza la redireccion.</li>
+</ul>
+<h4>Que puede fallar</h4>
+<ul>
+  <li><b>Bucle de redireccion infinito</b> si el balanceador Huawei no envia <code>X-Forwarded-Proto</code> como Django espera: el usuario recibe <code>ERR_TOO_MANY_REDIRECTS</code> y <b>cae el sitio completo</b>.</li>
+  <li>Health checks internos por HTTP recibiendo redirect: el orquestador marca el servicio caido y lo recicla.</li>
+</ul>
+<h4>Quien valida</h4>
+<table class="valida">
+  <tr><td>Ejecuto</td><td>Arlethe Mora</td></tr>
+  <tr><td>Revision de codigo</td><td>Paolo Payan</td></tr>
+  <tr><td>Infraestructura</td><td><b>Miguel Angel Ramos.</b> Confirmar que el balanceador Huawei envia <code>X-Forwarded-Proto</code> y que <code>SECURE_PROXY_SSL_HEADER</code> coincide. Es la duda que quedo abierta el 14-ago</td></tr>
+  <tr><td>Aprueba</td><td>Dulce Gonzalez</td></tr>
+</table>
+</div>
+
+<div class="ficha">
+<h3 class="item crit">2 &middot; Cabeceras de seguridad HTTP en todos los backends</h3>
+<p class="url">projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037480070</p>
+<h4>Que se hizo (segun comentarios)</h4>
+<ul>
+  <li>Se agrego <code>SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'</code>, verificado con Postman. Arlethe Mora, 27-jul.</li>
+</ul>
+<div class="callout crit"><b>El criterio de aceptacion pide cinco cabeceras y en los comentarios solo consta una.</b> Faltan por confirmar <b>CSP, HSTS, X-Frame-Options y X-Content-Type-Options</b>, es decir las dos de mayor impacto (CSP y HSTS) y las dos de clickjacking y sniffing. La subtarea esta en pruebas internas desde el 11-ago y es el hallazgo <b>P090, clasificado como CRITICO</b> en el pentest.</div>
+<h4>Que puede fallar</h4>
+<ul>
+  <li><b>Si no estan implementadas:</b> el hallazgo critico sigue abierto y no deberia darse por cerrado al liberar.</li>
+  <li><b>Si se implementan mal:</b> una CSP con allowlist incompleta <b>bloquea el script de checkout de NetPay y el ciudadano no puede pagar</b>. El propio criterio de aceptacion lo advierte. Los mapas Mapbox tambien.</li>
+  <li><b>HSTS de un año es practicamente irreversible:</b> el estado vive en el navegador de cada usuario y quitar la cabecera del servidor no lo deshace. Con <code>includeSubDomains</code>, un subdominio sin certificado valido queda inaccesible y <b>el rollback no lo arregla</b>.</li>
+</ul>
+<h4>Quien valida</h4>
+<table class="valida">
+  <tr><td>Ejecuto</td><td>Arlethe Mora (solo Referrer-Policy consta)</td></tr>
+  <tr><td>Infraestructura</td><td><b>Definir donde se emiten las cabeceras:</b> en nginx o en Django. Si van en nginx, es trabajo de infra y no de la subtarea. Definir el <code>max-age</code> de HSTS y si se activa <code>includeSubDomains</code>: es una decision con efecto de un año</td></tr>
+  <tr><td>QA</td><td>Checkout NetPay y mapas con la CSP activa, en escritorio y movil</td></tr>
+  <tr><td>Aprueba</td><td>Dulce Gonzalez</td></tr>
+</table>
+<div class="callout warn"><b>Mitigacion sugerida.</b> Desplegar la CSP como <code>Content-Security-Policy-Report-Only</code> para medir violaciones con trafico real antes de bloquear. HSTS escalonado: 300 s, luego 86400 s, y solo despues un año.</div>
+</div>
+
+<div class="ficha">
+<h3 class="item crit">3 &middot; Endpoints sin autenticacion: se resolvio distinto a lo planteado</h3>
+<p class="url">projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037475078</p>
+<h4>Que se hizo (segun comentarios)</h4>
+<p>Dulce planteo el 21-jul: <i>"aunque sabemos que deben ser publicos debe existir algun mecanismo para no exponerlos"</i>. Arlethe implemento el 27-jul <b>rate limiting en 21 endpoints publicos</b> con DRF Throttling por IP, en tres niveles:</p>
+<table>
+  <thead><tr><th class="c">Nivel</th><th class="c">Limite</th><th>Endpoints</th></tr></thead>
+  <tbody>
+    <tr><td class="c">ALTO</td><td class="c">10 req/min</td><td>3 de escritura sin autenticacion: adeudos, <b>webhook_netpay</b>, lecturas_arcos</td></tr>
+    <tr><td class="c">MEDIO</td><td class="c">60 req/min</td><td>5 de lectura con datos del ciudadano: vehiculos, predios, empresas, cargos, infraccion</td></tr>
+    <tr><td class="c">BAJO</td><td class="c">200 req/min</td><td>13 catalogos</td></tr>
+  </tbody>
+</table>
+<div class="callout crit"><b>Riesgo concreto para infraestructura: <code>webhook_netpay</code> quedo limitado a 10 peticiones por minuto por IP.</b> Ese endpoint lo llama la pasarela de pagos, no un ciudadano. Si NetPay notifica desde un rango acotado de IPs y hay un pico de transacciones, <b>las notificaciones de pago legitimas empiezan a ser rechazadas</b>: el ciudadano paga y el pago no se concilia. Hay que confirmar el volumen real de callbacks de NetPay antes de liberar, o excluir ese endpoint del throttling y protegerlo por firma.</div>
+<h4>Que falta o no consta</h4>
+<ul>
+  <li>El criterio de aceptacion dice que los endpoints sensibles <b>requieren autenticacion</b>. Se implemento rate limiting, que es una mitigacion distinta. <b>El criterio no se cumple como esta escrito</b>: o se actualiza el criterio dejando constancia de la decision, o se acepta el riesgo formalmente.</li>
+  <li>No consta que se haya atendido la parte de <b>ocultar el mapa de endpoints en el bundle</b>.</li>
+</ul>
+<h4>Quien valida</h4>
+<table class="valida">
+  <tr><td>Ejecuto</td><td>Arlethe Mora &middot; PR <span class="url">nay_opensir/pull/101</span></td></tr>
+  <tr><td>Infraestructura</td><td><b>Validar el throttling del webhook de NetPay</b> contra el volumen real de la pasarela. Confirmar si el rate limiting por IP funciona detras del balanceador o si todas las peticiones llegan con la IP del proxy</td></tr>
+  <tr><td>Aprueba</td><td>Dulce Gonzalez, con decision explicita sobre el cambio de criterio</td></tr>
+</table>
+<div class="callout warn"><b>Nota tecnica para infra:</b> si el throttling identifica por IP del cliente y el trafico entra por el balanceador, hay que verificar que se lee la IP real y no la del proxy. Si lee la del proxy, <b>todos los usuarios comparten el mismo cupo</b> y el limite se agota con trafico normal.</div>
+</div>
+
+</div>
+
+<div class="page brk">
+
+<div class="ficha">
+<h3 class="item ok">4 &middot; SonarQube opensir: mas avanzado de lo que parecia</h3>
+<p class="url">projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037486061</p>
+<h4>Que se hizo (segun comentarios)</h4>
+<p>Arlethe, 27-jul: <i>"Se corrigieron los hallazgos encontrados, solo quedo sin realizarse uno (P024 Duplicate strings) que es afectar todas las migraciones historicas porque esos son archivos que ya se ejecutaron y modificarlos es innecesario y riesgoso"</i>. PR <span class="url">nay_opensir/pull/101</span>.</p>
+<div class="callout ok"><b>Decision correcta y ya tomada.</b> P024 es la regla mas voluminosa del repositorio (1059 ocurrencias, 361 h estimadas por Sonar) y apuntaba a <code>opensir/catalogos/migrations/</code>. Excluirla evita romper el historial de migraciones de Django. Esto tambien explica la diferencia entre las 8 horas asignadas y las ~777 h que estimaba Sonar: el grueso se excluyo a proposito.</div>
+<h4>Que sigue siendo riesgo</h4>
+<ul>
+  <li><b>P031 <code>python:S4830</code> (13 ocurrencias) &mdash; validacion de certificado TLS.</b> Al activarla, <b>toda integracion con certificado autofirmado o cadena incompleta empieza a fallar</b>. Esta en <code>generar_pdf_ejecuciones_masivo.py</code> y <code>tasks/scripts.py</code>: son tareas asincronas, fallan en silencio. <b>Infra debe confirmar que los servicios que consumen esos procesos tienen certificados validos.</b></li>
+  <li><b>P026 <code>python:S5754</code> (162) &mdash; acotar <code>except</code> genericos.</b> Excepciones que antes se tragaban ahora propagan: errores 500 nuevos en catastro.</li>
+  <li><b>P036 <code>python:S2068</code> (5) &mdash; credenciales hardcodeadas.</b> Si se movieron a variables de entorno, <b>deben quedar configuradas en el entorno productivo</b> o falla la integracion de infracciones.</li>
+</ul>
+</div>
+
+<div class="ficha">
+<h3 class="item med">5 &middot; SonarQube retys y rotacion de tokens Mapbox</h3>
+<p class="url">projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037486064</p>
+<h4>Que se hizo</h4>
+<ul>
+  <li>Hallazgos P060, P061 y P062 resueltos, y despues <i>"se solucionaron los hallazgos restantes"</i>. PRs <span class="url">tramites/pull/89</span> y <span class="url">nay_retys/pull/1</span>. Conflictos con la rama <code>dev-vps</code> resueltos el 31-jul.</li>
+  <li>En paralelo se rotaron los tokens Mapbox con restriccion por dominio en SIR, Ventanilla unica y retys: PRs <span class="url">nay_OPENSIR-FRONTEND/pull/52</span>, <span class="url">nay_ventanilla-unica/pull/29</span> y <span class="url">nay_retys/pull/2</span>.</li>
+</ul>
+<div class="callout warn"><b>Punto a confirmar.</b> El hallazgo P067 reporta un <code>accessToken</code> de Mapbox hardcodeado en <code>src/components/MultipleMap.jsx</code>. La rotacion de tokens incluye un PR sobre <code>nay_retys</code>, por lo que probablemente ya quedo cubierto, pero <b>no consta explicitamente que ese token hardcodeado sea el que se reemplazo</b>. Si se rota el token sin actualizar ese archivo, los mapas de retys dejan de cargar. Vale una verificacion rapida antes de liberar.</div>
+</div>
+
+<div class="ficha">
+<h3 class="item high">6 &middot; Datos de pago en localStorage y SRI de NetPay</h3>
+<p class="url">projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037475075</p>
+<h4>Que se hizo</h4>
+<ul>
+  <li>Cambios en PR <span class="url">nay_ventanilla-unica/pull/30</span>, construido sobre la rama del PR <span class="url">pull/26</span> porque la implementacion de NetPay cambio mucho. <b>Dependencia de orden: primero se integra el 26, despues el 30.</b> Mario Merel confirmo el 8-sep que ya esta en QA.</li>
+  <li>En la tarea de SRI se autohospedo el SDK de NetPay y se agrego el script <code>fetch:netpay-sdk</code> al <code>package.json</code> para regenerar los valores de integridad al actualizar el SDK. PRs <span class="url">pull/33</span> y <span class="url">pull/26</span>.</li>
+</ul>
+<div class="callout crit"><b>Incidente relevante para infraestructura, 25 de agosto.</b> Durante la validacion del pago en linea Jair Guerrero reporto un error. Alejandro Leon diagnostico:
+<div class="cita">"parece ser que la config de nginx es la que esta haciendo que el iframe donde esta alojado la pasarela de pagos de netpay truene"</div>
+<b>Ya hay un precedente de que la configuracion de nginx rompe el cobro en linea.</b> Esto refuerza las peticiones 1 y 2: cualquier cambio de cabeceras o de redireccion HTTPS toca el mismo camino que el iframe de la pasarela.</div>
+<h4>Que falta</h4>
+<ul>
+  <li>El 8-sep aparecieron conflictos en DEV que Alejandro German esta resolviendo, ligados al PR 26.</li>
+  <li>Autohospedar el SDK obliga a un proceso manual de actualizacion. <b>Hay que definir quien vigila las actualizaciones de seguridad del SDK de NetPay</b>, o el sistema se queda con una version vieja indefinidamente.</li>
+</ul>
+</div>
+
+</div>
+
+<div class="page brk">
+<h2 class="section">Lo que esta sin iniciar y necesita su valoracion</h2>
+
+<table class="avoid">
+  <thead><tr><th class="c">Riesgo</th><th>Subtarea y estado</th><th>Que dicen los comentarios</th><th>Que necesitamos valorar</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="c"><span class="pill crit">CRITICO</span></td>
+      <td><b>Llaves privadas NetPay en el bundle</b><br>No iniciada &middot; <b>cero comentarios</b><br><span class="url">task-detail/106599000037486067</span></td>
+      <td><b>Ninguno.</b> Es la unica subtarea del hito sin un solo comentario desde que se creo</td>
+      <td>Las llaves <code>sk_netpay_*</code> estan expuestas en texto claro y permiten reembolsos. <b>Hay que rotarlas en produccion, no solo moverlas al backend.</b> Definir quien ejecuta la rotacion y coordinarla con NetPay para no cortar el cobro</td>
+    </tr>
+    <tr>
+      <td class="c"><span class="pill high">IMPORTANTE</span></td>
+      <td><b>Restringir CORS</b><br>No iniciada<br><span class="url">task-detail/106599000037486071</span></td>
+      <td>Dulce, 21-jul: <i>"@miguel angel ramos luna esta es tuya"</i>. Sin actividad desde entonces</td>
+      <td><b>Ya esta asignada a infraestructura y lleva mes y medio sin arrancar.</b> Hay que sustituir <code>Access-Control-Allow-Origin: *</code> por lista blanca en hacienda, apifuncionarios y reporteador, e inventariar antes que consumidores existen para no romper integraciones</td>
+    </tr>
+    <tr>
+      <td class="c"><span class="pill high">IMPORTANTE</span></td>
+      <td><b>Reporteador ASP.NET publico</b><br><b>Cancelada</b><br><span class="url">task-detail/106599000037479061</span></td>
+      <td>Arlethe, 27-jul: <i>"esta tarea me parece que es mas de infraestructura que de codigo, quizas restricciones desde el firewall"</i></td>
+      <td><b>Se cancelo porque es tema de infraestructura, no porque el riesgo se haya resuelto.</b> La app de reporteria interna sigue accesible desde Internet. Valorar restriccion por IP, VPN o red interna, y reabrir la subtarea o documentar el riesgo aceptado</td>
+    </tr>
+    <tr>
+      <td class="c"><span class="pill med">CRITICO (rendimiento)</span></td>
+      <td><b>Rendimiento del portal publico</b><br>No iniciada<br><span class="url">task-detail/106599000037486076</span></td>
+      <td>Alejandro Leon, 10-ago: no puede arrancar hasta cerrar NABO-T161, NABO-T153 y NABO-T104, porque los cambios de NetPay son grandes y habria conflictos</td>
+      <td>7220 ms de recursos que bloquean el render en movil y 4383 KiB de imagenes sin optimizar. <b>Buena parte se resuelve desde infraestructura sin tocar codigo:</b> compresion, cache, HTTP/2, CDN y conversion de imagenes. Valorar que se puede adelantar por esa via mientras el frontend sigue bloqueado</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout"><b>Dos de las cuatro sin iniciar son de infraestructura.</b> CORS ya esta asignada a Miguel Angel Ramos y el reporteador se cancelo justamente porque corresponde a infra. No estan detenidas por falta de desarrollo, sino esperando una definicion de su lado.</div>
+
+<h2 class="section">Orden de despliegue sugerido</h2>
+<ol class="pasos">
+  <li><b>Datos de pago en localStorage y retys.</b> Menor radio de impacto, sirven para validar el proceso.</li>
+  <li><b>HTTPS</b> en ventana de mantenimiento, con rollback preparado, y <b>solo despues de que infra confirme el comportamiento del balanceador Huawei</b>.</li>
+  <li><b>Cabeceras</b> con CSP en Report-Only y HSTS escalonado, una vez definido si van en nginx o en Django.</li>
+  <li><b>Endpoints y throttling</b>, despues de validar el limite del webhook de NetPay.</li>
+  <li><b>SonarQube opensir</b>, con el diff revisado y los certificados de las integraciones confirmados.</li>
+</ol>
+<div class="callout crit"><b>HTTPS y cabeceras no deben salir el mismo dia.</b> Si algo falla no se podra distinguir si fue la redireccion o la CSP, y con HSTS ya emitido el rollback no devuelve al estado anterior.</div>
+
+<h2 class="section">Enlaces</h2>
+<table>
+  <thead><tr><th>Elemento</th><th>Enlace</th></tr></thead>
+  <tbody>
+    <tr><td>Hito completo en Zoho</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037479054</td></tr>
+    <tr><td>Forzar HTTPS</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037475081</td></tr>
+    <tr><td>Cabeceras de seguridad</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037480070</td></tr>
+    <tr><td>Endpoints sin autenticacion</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037475078</td></tr>
+    <tr><td>SonarQube opensir</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037486061</td></tr>
+    <tr><td>SonarQube retys</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037486064</td></tr>
+    <tr><td>Datos de pago en localStorage</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037475075</td></tr>
+    <tr><td>Llaves NetPay (sin iniciar)</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037486067</td></tr>
+    <tr><td>CORS (sin iniciar)</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037486071</td></tr>
+    <tr><td>Reporteador ASP.NET (cancelada)</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037479061</td></tr>
+    <tr><td>Rendimiento portal publico</td><td class="url">https://projects.zoho.com/portal/sigobproyectos#zp/task-detail/106599000037486076</td></tr>
+    <tr><td>PR principal de backend</td><td class="url">https://github.com/sigob-open-source/nay_opensir/pull/101</td></tr>
+    <tr><td>PR de ajuste https y nginx</td><td class="url">https://github.com/sigob-open-source/nay_opensir/pull/116</td></tr>
+  </tbody>
+</table>
+
+<h2 class="section">Alcance y limitaciones</h2>
+<p>Este documento se construyo leyendo descripciones, estados, dueños, revisores y <b>los 64 comentarios</b> de las 14 subtareas registradas en Zoho. <b>No se reviso el codigo fuente, los PRs ni la configuracion real de los servidores.</b></p>
+<p>Cuando se indica que algo "no consta", significa que no aparece en los comentarios de Zoho: puede estar hecho y sin registrar. Por eso varias peticiones son de confirmacion y no de ejecucion.</p>
+<p class="foot">Generado a partir del estado registrado en Zoho Projects el 2026-09-08. Los nombres provienen de los campos dueño, revisor y revisor de desarrollo, y de los comentarios de cada subtarea. Es un insumo para la decision, no la sustituye: la validacion tecnica y la aprobacion de salida corresponden al Tech Lead, al area de infraestructura y al PO.</p>
+
+</div>
+</body>
+</html>

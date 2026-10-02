@@ -702,120 +702,116 @@ server.tool(
   }
 );
 
+// ── timelogs: helpers de aprobación ───────────────────────────────────────────
+
+// Tipos válidos de module.type en /timelogs. Barrer solo "task" pierde en
+// silencio las horas cargadas a issues.
+const TIMELOG_TYPES = ["task", "issue"];
+
+// El endpoint pagina, pero page_info.has_next_page viene siempre true: el corte
+// real es "esta página ya no aportó ids nuevos".
+async function fetchProjectTimelogs(projectId, startDate, endDate) {
+  const all = new Map();
+  for (const type of TIMELOG_TYPES) {
+    for (let page = 1; page <= 50; page++) {
+      const r = await zohoClient.get(`/portal/${PORTAL}/projects/${projectId}/timelogs`, {
+        view_type: "customdate",
+        start_date: startDate,
+        end_date: endDate,
+        module: JSON.stringify({ type }),
+        per_page: 100,
+        page,
+      });
+      if (r.error) break;
+      const before = all.size;
+      for (const day of r.time_logs || []) {
+        for (const log of day.log_details || []) all.set(log.id, log);
+      }
+      if (all.size === before) break;
+    }
+  }
+  return [...all.values()].filter(l => l.date >= startDate && l.date <= endDate);
+}
+
+const isPending = log => {
+  const s = (log.approval?.status || log.approval_status || "").toLowerCase();
+  return s === "pending" || s === "unapproved";
+};
+
+function defaultRange(start_date, end_date) {
+  const now = new Date();
+  return [
+    start_date || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`,
+    end_date || now.toISOString().slice(0, 10),
+  ];
+}
+
 // ── get_pending_approvals ──────────────────────────────────────────────────────
 server.tool(
   "get_pending_approvals",
-  "Lista los registros de tiempo pendientes de aprobación en un proyecto. Itera sobre todas las tareas y filtra los logs con approval_status='Unapproved'. Devuelve: log_id, fecha, usuario, tarea, horas. El log_id es necesario para usar approve_time_logs.",
+  "Lista los registros de tiempo pendientes de aprobación en un proyecto, incluidos los cargados a issues. Devuelve: log_id, fecha, usuario, tarea y horas. El log_id es necesario para usar approve_time_logs.",
   {
     project_id: z.string().describe("ID numérico del proyecto"),
-    user_zpuid: z.string().optional().describe("zpuid del usuario — si se pasa, solo muestra logs de tareas asignadas a ese usuario"),
+    user_zpuid: z.string().optional().describe("zpuid del usuario — si se pasa, solo muestra sus registros"),
     start_date: z.string().optional().describe("Fecha inicio YYYY-MM-DD (por defecto: primer día del mes actual)"),
     end_date:   z.string().optional().describe("Fecha fin YYYY-MM-DD (por defecto: hoy)"),
   },
   async ({ project_id, user_zpuid, start_date, end_date }) => {
-    const now = new Date();
-    const sd = start_date || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-    const ed = end_date   || now.toISOString().slice(0, 10);
+    const [sd, ed] = defaultRange(start_date, end_date);
+    const pending = (await fetchProjectTimelogs(project_id, sd, ed))
+      .filter(isPending)
+      .filter(l => !user_zpuid || String(l.owner?.zpuid) === String(user_zpuid))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-    const allTasks = await zohoClient.getAllPages(`/portal/${PORTAL}/projects/${project_id}/tasks`);
-    const tasks = user_zpuid
-      ? allTasks.filter(t => (t.owners_and_work?.owners || []).some(o => String(o.zpuid) === String(user_zpuid)))
-      : allTasks;
-    if (!tasks.length) return text("No se encontraron tareas.");
-
-    const pendingFilter = JSON.stringify({
-      criteria: [{ field_name: "approval_status", criteria_condition: "is", value: ["Unapproved"] }],
-      pattern: "1",
-    });
-
-    const pendingLogs = [];
-    for (const task of tasks) {
-      const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/timelogs`, {
-        view_type:  "customdate",
-        start_date: sd,
-        end_date:   ed,
-        module:     JSON.stringify({ id: task.id, type: "task" }),
-        filter:     pendingFilter,
-      });
-      for (const day of r.time_logs || []) {
-        for (const log of day.log_details || []) pendingLogs.push(log);
-      }
-    }
-
-    if (!pendingLogs.length) return text("No hay registros de tiempo pendientes de aprobación en ese rango.");
-    pendingLogs.sort((a, b) => a.date.localeCompare(b.date));
-
-    const lines = pendingLogs.map(log =>
-      `ID: ${log.id} | ${log.date} | ${log.owner?.name || "N/A"} | ${log.module_detail?.name || "N/A"} | ${log.log_hour}`
+    if (!pending.length) return text("No hay registros de tiempo pendientes de aprobación en ese rango.");
+    const lines = pending.map(l =>
+      `ID: ${l.id} | ${l.date} | ${l.owner?.name || "N/A"} | ${l.module_detail?.name || "N/A"} | ${l.log_hour} | ${l.type}`
     );
-    return text(`${pendingLogs.length} registro(s) pendientes de aprobación:\n${lines.join("\n")}`);
+    return text(`${pending.length} registro(s) pendientes de aprobación:\n${lines.join("\n")}`);
   }
 );
 
 // ── approve_time_logs ──────────────────────────────────────────────────────────
 server.tool(
   "approve_time_logs",
-  "Aprueba o rechaza registros de tiempo en un proyecto. Si se pasan log_ids, solo procesa esos. Si no, aprueba todos los pendientes del proyecto en el rango de fechas (filtro opcional por usuario). Usa PATCH /logs en bulk.",
+  "Aprueba o rechaza registros de tiempo en lote con PATCH /logs. Si se pasan log_ids solo procesa esos; si no, procesa todos los pendientes del proyecto en el rango (con filtro opcional por usuario). Incluye los registros cargados a issues.",
   {
     project_id:      z.string().describe("ID numérico del proyecto"),
-    log_ids:         z.array(z.string()).optional().describe("IDs de logs específicos a aprobar/rechazar. Si no se pasa, se procesan todos los pendientes."),
-    user_zpuid:      z.string().optional().describe("zpuid del usuario — filtra logs de tareas asignadas a ese usuario (solo aplica si no se pasan log_ids)"),
+    log_ids:         z.array(z.string()).optional().describe("IDs de logs específicos. Si no se pasa, se procesan todos los pendientes"),
+    user_zpuid:      z.string().optional().describe("zpuid del usuario — filtra sus registros (solo si no se pasan log_ids)"),
     start_date:      z.string().optional().describe("Fecha inicio YYYY-MM-DD (por defecto: primer día del mes actual)"),
     end_date:        z.string().optional().describe("Fecha fin YYYY-MM-DD (por defecto: hoy)"),
     approval_status: z.enum(["Approved", "Rejected"]).optional().describe("Estado a aplicar (por defecto: Approved)"),
   },
   async ({ project_id, log_ids, user_zpuid, start_date, end_date, approval_status = "Approved" }) => {
-    const now = new Date();
-    const sd = start_date || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-    const ed = end_date   || now.toISOString().slice(0, 10);
+    const [sd, ed] = defaultRange(start_date, end_date);
+    const logs = await fetchProjectTimelogs(project_id, sd, ed);
 
-    // Fetch all pending logs to get their module info (needed for bulk update)
-    const allTasks = await zohoClient.getAllPages(`/portal/${PORTAL}/projects/${project_id}/tasks`);
-    const tasks = (!log_ids?.length && user_zpuid)
-      ? allTasks.filter(t => (t.owners_and_work?.owners || []).some(o => String(o.zpuid) === String(user_zpuid)))
-      : allTasks;
-    if (!tasks.length) return text("No se encontraron tareas.");
+    const toProcess = log_ids?.length
+      ? logs.filter(l => log_ids.includes(String(l.id)))
+      : logs.filter(isPending).filter(l => !user_zpuid || String(l.owner?.zpuid) === String(user_zpuid));
 
-    const pendingFilter = JSON.stringify({
-      criteria: [{ field_name: "approval_status", criteria_condition: "is", value: ["Unapproved"] }],
-      pattern: "1",
-    });
+    if (!toProcess.length) return text("No se encontraron registros para procesar.");
 
-    const pendingLogs = [];
-    for (const task of tasks) {
-      const r = await zohoClient.get(`/portal/${PORTAL}/projects/${project_id}/timelogs`, {
-        view_type:  "customdate",
-        start_date: sd,
-        end_date:   ed,
-        module:     JSON.stringify({ id: task.id, type: "task" }),
-        filter:     pendingFilter,
-      });
-      for (const day of r.time_logs || []) {
-        for (const log of day.log_details || []) pendingLogs.push(log);
-      }
-    }
-
-    const logsToProcess = log_ids?.length
-      ? pendingLogs.filter(log => log_ids.includes(String(log.id)))
-      : pendingLogs;
-
-    if (!logsToProcess.length) return text("No se encontraron registros pendientes de aprobación para procesar.");
-
-    const payload = logsToProcess.map(log => ({
-      id:              log.id,
-      module:          { id: log.module_detail.id, type: log.module_detail.type },
+    // OJO: `module` va como string con el tipo ("task" / "issue").
+    // Enviarlo como objeto {id, type} devuelve PATTERN_NOT_MATCHED.
+    const payload = toProcess.map(l => ({
+      id: l.id,
+      module: l.module_detail?.type || l.type,
       approval_status,
     }));
 
-    await zohoClient.patch(`/portal/${PORTAL}/logs`, payload);
+    const r = await zohoClient.patch(`/portal/${PORTAL}/logs`, payload);
+    if (r?.error) return text(`Error al actualizar: ${JSON.stringify(r.error)}`);
 
     const verb = approval_status === "Approved" ? "aprobados" : "rechazados";
-    const lines = logsToProcess.map(log =>
-      `${log.date} | ${log.owner?.name || "N/A"} | ${log.module_detail?.name || "N/A"} | ${log.log_hour}`
+    const lines = toProcess.map(l =>
+      `${l.date} | ${l.owner?.name || "N/A"} | ${l.module_detail?.name || "N/A"} | ${l.log_hour}`
     );
     return text(`${payload.length} registro(s) ${verb}:\n${lines.join("\n")}`);
   }
 );
+
 
 // ── start server ──────────────────────────────────────────────────────────────
 await initPortalId();

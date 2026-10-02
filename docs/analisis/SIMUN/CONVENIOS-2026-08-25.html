@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Manual de Integración — Convenios de Pago · SIR ↔ SIMUN</title>
+<style>
+  :root{
+    --slate:#3C4E5D; --slate-dark:#2C3A46; --gold:#C7B383; --gold-soft:#EFE8D6;
+    --ink:#22303a; --muted:#6b7a85; --line:#dfe4e8; --bg-soft:#f6f8f9;
+    --ok:#2f855a; --ok-bg:#e6f4ec; --warn:#b7791f; --warn-bg:#fbf3e2; --crit:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);font-size:12px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page{padding:0 34px;}
+
+  /* Portada */
+  .cover{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;background:linear-gradient(160deg,#fdfdfc 0%,var(--gold-soft) 100%);
+    page-break-after:always;padding:40px;}
+  .cover img{width:280px;max-width:70%;margin-bottom:40px;}
+  .cover .kicker{letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;font-size:13px;margin-bottom:10px;}
+  .cover h1{color:var(--slate);font-size:30px;margin:0 0 8px;font-weight:800;line-height:1.15;max-width:760px;}
+  .cover h2{color:var(--muted);font-size:15px;font-weight:500;margin:0 0 30px;max-width:640px;}
+  .cover .meta{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 28px;
+    display:grid;grid-template-columns:auto auto;gap:8px 32px;text-align:left;box-shadow:0 6px 24px rgba(60,78,93,.08);}
+  .cover .meta div{font-size:12.5px;}
+  .cover .meta b{color:var(--slate);}
+  .cover .to{margin-top:18px;background:var(--slate);color:#fff;padding:8px 22px;border-radius:8px;font-size:14px;font-weight:700;letter-spacing:.5px;}
+  .cover .badge{margin-top:14px;background:var(--warn-bg);color:var(--warn);padding:8px 18px;border-radius:30px;font-weight:700;font-size:12.5px;}
+  .cover .badge.neutral{background:var(--gold-soft);color:var(--slate);border:1px solid var(--gold);}
+
+  h2.section{color:var(--slate);font-size:18px;border-bottom:3px solid var(--gold);padding-bottom:6px;margin:28px 0 14px;}
+  h3.item{color:var(--slate-dark);font-size:13.5px;margin:20px 0 6px;padding-left:10px;border-left:4px solid var(--gold);}
+  h4.sub{color:var(--slate-dark);font-size:12px;margin:14px 0 4px;text-transform:uppercase;letter-spacing:.6px;}
+  p{margin:6px 0;}
+
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:10.5px;}
+  th{background:var(--slate);color:#fff;text-align:left;padding:7px 9px;font-weight:600;}
+  td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  table.summary td:first-child{text-align:center;font-weight:700;color:var(--slate);width:22px;}
+  table.fields td:first-child{font-family:"SF Mono",Menlo,Consolas,monospace;color:var(--slate-dark);font-weight:600;white-space:nowrap;width:24%;}
+  table.fields td:nth-child(2){color:var(--muted);width:14%;white-space:nowrap;}
+
+  .chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+  .chip.ok{background:var(--ok-bg);color:var(--ok);}
+  .chip.warn{background:var(--warn-bg);color:var(--warn);}
+  .chip.crit{background:#fbe6e3;color:var(--crit);}
+  .chip.type{background:#e8eef2;color:var(--slate);}
+
+  .card{border:1px solid var(--line);border-radius:10px;padding:2px 16px 12px;margin-bottom:6px;background:#fff;page-break-inside:avoid;}
+  .metaline{font-size:10.5px;color:var(--muted);margin:2px 0 8px;}
+  .metaline b{color:var(--slate-dark);}
+  ul,ol{margin:6px 0;padding-left:18px;}
+  li{margin:2px 0;}
+  code{background:#eef2f4;padding:1px 5px;border-radius:4px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:var(--slate-dark);}
+
+  .callout{border-radius:8px;padding:10px 14px;margin:10px 0;font-size:11px;}
+  .callout.warn{background:var(--warn-bg);border-left:4px solid var(--warn);}
+  .callout.info{background:#eaf1f6;border-left:4px solid var(--slate);}
+  .callout.crit{background:#fbe6e3;border-left:4px solid var(--crit);}
+
+  .endpoint{background:var(--slate-dark);color:#fff;border-radius:6px;padding:6px 10px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10px;margin:8px 0 4px;word-break:break-all;}
+  .endpoint .verb{background:var(--gold);color:var(--slate-dark);padding:1px 7px;border-radius:4px;font-weight:700;margin-right:8px;}
+
+  pre.json{background:#f4f7f9;border:1px solid var(--line);border-left:4px solid var(--slate);border-radius:6px;
+    padding:10px 12px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:8.6px;line-height:1.45;
+    color:var(--slate-dark);overflow-x:auto;white-space:pre-wrap;margin:8px 0;}
+  pre.json .k{color:#1f6f8b;}
+
+  .flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0;font-size:10px;}
+  .flow span.step{background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:6px;padding:5px 9px;}
+  .flow span.arrow{color:var(--gold);font-weight:700;}
+
+  .prio{display:flex;gap:6px;align-items:center;margin:8px 0;font-size:11px;font-weight:700;color:var(--slate-dark);}
+  .prio span.p{background:var(--gold-soft);border:1px solid var(--gold);border-radius:6px;padding:5px 12px;}
+  .prio span.gt{color:var(--gold);}
+
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:5px 0 5px 26px;position:relative;border-bottom:1px dashed var(--line);}
+  .checklist li:before{content:"\2610";position:absolute;left:4px;color:var(--gold);font-size:14px;top:3px;}
+
+  .foot{margin-top:26px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:10px;text-align:center;}
+  .avoid{page-break-inside:avoid;}
+  .break{page-break-before:always;}
+</style>
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<div class="cover">
+  <img src="../../../assets/sigob-5.png" alt="SiGOB">
+  <div class="kicker">Manual de Integración · API</div>
+  <h1>Convenios de pago: consulta de adeudos y saldado de parcialidades</h1>
+  <h2>Especificación de los endpoints del SIR que SIMUN debe consumir para operar convenios de impuesto predial</h2>
+  <div class="meta">
+    <div><b>Sistema:</b> SiGOB / SIR</div>
+    <div><b>Módulo:</b> Recaudación · Predial</div>
+    <div><b>Ámbito:</b> Convenios de pago</div>
+    <div><b>Endpoints:</b> 2</div>
+    <div><b>Versión:</b> 1.0</div>
+    <div><b>Fecha:</b> 2026-08-25</div>
+  </div>
+  <div class="to">Dirigido a: SIMUN</div>
+  <div class="badge neutral">Especificación técnica de integración</div>
+</div>
+
+<div class="page">
+
+<!-- 1 -->
+<h2 class="section">1. Propósito y alcance</h2>
+<p>Este documento especifica los <b>dos endpoints del SIR</b> que deben consumirse para operar <b>convenios de pago</b> de impuesto predial:</p>
+<ol>
+  <li><b>Consulta</b> de un predio con adeudos, incluyendo los datos del convenio y de la parcialidad por pagar.</li>
+  <li><b>Saldado</b> de una parcialidad del convenio (emisión del recibo).</li>
+</ol>
+<p>Se documentan los contratos de entrada y salida, la estructura de cada objeto, las reglas de negocio aplicables y ejemplos completos de petición y respuesta.</p>
+<div class="callout info">
+  <b>Host de la API.</b> Las rutas se documentan en forma relativa. El placeholder <code>{BASE_API_SIR}</code> corresponde al host de la API del sitio (p. ej. <code>https://apisir.&lt;municipio&gt;.gob.mx</code>). Sustitúyalo por el host del ambiente que corresponda.
+</div>
+
+<!-- 2 -->
+<h2 class="section">2. Resumen del flujo</h2>
+<div class="flow">
+  <span class="step">1 · Consultar predio y adeudos</span><span class="arrow">→</span>
+  <span class="step">2 · ¿Tiene <code>convenio</code>?</span><span class="arrow">→</span>
+  <span class="step">3 · Leer siguiente parcialidad</span><span class="arrow">→</span>
+  <span class="step">4 · Cobrar al ciudadano</span><span class="arrow">→</span>
+  <span class="step">5 · Registrar pago y emitir recibo</span>
+</div>
+<table class="summary">
+  <tr><th>#</th><th>Paso</th><th>Actor</th><th>Endpoint</th></tr>
+  <tr><td>1</td><td>Consultar el predio y sus adeudos</td><td>SIMUN</td><td><code>POST /catastro/predio-con-adeudos/adeudos/</code></td></tr>
+  <tr><td>2</td><td>Detectar si el predio tiene convenio (key <code>convenio</code> en la respuesta)</td><td>SIMUN</td><td>—</td></tr>
+  <tr><td>3</td><td>Leer la <b>siguiente parcialidad a pagar</b> (<code>parcialidades_de_convenio</code>)</td><td>SIMUN</td><td>—</td></tr>
+  <tr><td>4</td><td>Cobrar al ciudadano el importe de esa parcialidad</td><td>SIMUN</td><td>—</td></tr>
+  <tr><td>5</td><td>Registrar el pago y generar el recibo</td><td>SIMUN</td><td><code>POST /recaudacion/recibos-convenio/</code></td></tr>
+</table>
+<div class="callout crit">
+  <b>Punto clave:</b> la consulta devuelve <b>una sola parcialidad</b> — la próxima por pagar. <b>No</b> devuelve el calendario completo del convenio.
+</div>
+
+<!-- 3 -->
+<h2 class="section">3. Endpoint 1 — Consulta de predio con adeudos y convenio</h2>
+<div class="endpoint"><span class="verb">POST</span>{BASE_API_SIR}/catastro/predio-con-adeudos/adeudos/</div>
+
+<div class="card">
+  <h3 class="item">3.1 Parámetros de entrada</h3>
+  <table class="fields">
+    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>clave_catastral_municipal</td><td>string</td><td>Clave catastral municipal del predio</td></tr>
+    <tr><td>periodo</td><td>int</td><td>Periodo a consultar</td></tr>
+    <tr><td>bimestre</td><td>int</td><td>Bimestre a consultar</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3 class="item">3.2 Comportamiento</h3>
+  <p>Regresa los datos del predio junto con sus cargos y adeudos conforme al <b>contrato ya existente</b>. Si el predio <b>tiene un convenio</b>, la respuesta incluye dos keys adicionales: <code>convenio</code> y <code>parcialidades_de_convenio</code>.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">3.3 Objeto <code>convenio</code></h3>
+  <table class="fields">
+    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>id</td><td>int</td><td>Identificador del convenio</td></tr>
+    <tr><td>descripcion</td><td>string</td><td>Descripción o nombre del convenio</td></tr>
+    <tr><td>observaciones</td><td>string</td><td>Observaciones del convenio</td></tr>
+    <tr><td>folio</td><td>string</td><td>Folio del convenio</td></tr>
+    <tr><td>numero_de_pagos</td><td>int</td><td><b>Número de mensualidades, sin contar el anticipo</b></td></tr>
+    <tr><td>anticipo</td><td>decimal</td><td>Importe del anticipo</td></tr>
+    <tr><td>total</td><td>decimal</td><td>Importe total del convenio, ya <b>con los recargos por parcialidad</b></td></tr>
+    <tr><td>pagado</td><td>decimal</td><td>Importe abonado al convenio</td></tr>
+    <tr><td>adeudo</td><td>decimal</td><td>Importe pendiente por pagar</td></tr>
+    <tr><td>fecha_de_solicitud</td><td>datetime</td><td>Fecha de solicitud del convenio</td></tr>
+    <tr><td>fecha_de_resolucion</td><td>datetime | null</td><td>Fecha de resolución</td></tr>
+  </table>
+  <div class="callout info">
+    <b>Regla del anticipo:</b> el anticipo cuenta como la <b>mensualidad 0</b>. Si <code>numero_de_pagos</code> = 9, los pagos totales son <b>10</b>: el anticipo más las 9 mensualidades.
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="item">3.4 Lista <code>parcialidades_de_convenio</code></h3>
+  <p>Es una lista, pero <b>trae una sola parcialidad</b>: la <b>siguiente a pagar</b>. Si toca pagar la mensualidad 2, solo traerá la parcialidad 2.</p>
+  <table class="fields">
+    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>id</td><td>int</td><td>Id de la parcialidad</td></tr>
+    <tr><td>mensualidad</td><td>int</td><td>Número de mensualidad — <b>el anticipo es 0</b></td></tr>
+    <tr><td>numero_de_parcialidad</td><td>string | int</td><td>Mismo valor que <code>mensualidad</code>, pero <b>renombra la mensualidad 0 como <code>"anticipo"</code></b></td></tr>
+    <tr><td>numero_de_parcialidades</td><td>int</td><td>Total de mensualidades, <b>sin contar el anticipo</b></td></tr>
+    <tr><td>fecha_de_vencimiento</td><td>datetime</td><td>Fecha de vencimiento del convenio</td></tr>
+    <tr><td>importe_de_la_parcialidad</td><td>decimal</td><td>Importe de la parcialidad</td></tr>
+    <tr><td>total_abonado</td><td>decimal</td><td>Importe abonado a esta parcialidad</td></tr>
+    <tr><td>adeudo</td><td>decimal</td><td><code>importe_de_la_parcialidad − total_abonado</code></td></tr>
+    <tr><td>saldado</td><td>bool</td><td><code>true</code> si <code>adeudo</code> es 0. <b>Por la naturaleza de la petición siempre llegará <code>false</code></b></td></tr>
+    <tr><td>cargos_a_pagar</td><td>array</td><td>Cargos que se deben pagar en esa parcialidad (§3.5)</td></tr>
+  </table>
+  <p class="metaline">Los tres campos <b>total_abonado</b>, <b>adeudo</b> y <b>saldado</b> dependen uno del otro, en ese orden de derivación.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">3.5 Lista <code>cargos_a_pagar</code></h3>
+  <p>Lista de los cargos que se deben pagar en esa parcialidad.</p>
+  <table class="fields">
+    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>cargo_id</td><td>int</td><td>Id del cargo</td></tr>
+    <tr><td>descripcion</td><td>string</td><td>Descripción del cargo</td></tr>
+    <tr><td>tipo_de_cargo_id</td><td>int</td><td>Id del tipo de cargo</td></tr>
+    <tr><td>tipo_de_cargo_descripcion</td><td>string</td><td>Descripción del tipo de cargo</td></tr>
+    <tr><td>importe</td><td>decimal</td><td>Cantidad con la que <b>se creó</b> el cargo. <b>Es permanente</b></td></tr>
+    <tr><td>adeudo</td><td>decimal</td><td><b>Lo pendiente por pagar.</b> Es el campo que cambia</td></tr>
+    <tr><td>total_abonado</td><td>decimal</td><td>Lo que se ha pagado de ese cargo</td></tr>
+    <tr><td>cargo_descuento</td><td>decimal</td><td>Descuento aplicado al cargo</td></tr>
+    <tr><td>recargo_importe</td><td>decimal</td><td>Adeudo del accesorio: recargo</td></tr>
+    <tr><td>recargo_descuento</td><td>decimal</td><td>Descuento del recargo</td></tr>
+    <tr><td>actualizacion_importe</td><td>decimal</td><td>Adeudo del accesorio: actualización</td></tr>
+    <tr><td>actualizacion_descuento</td><td>decimal</td><td>Descuento de la actualización</td></tr>
+    <tr><td>gasto_importe</td><td>decimal</td><td>Adeudo del accesorio: gasto</td></tr>
+    <tr><td>gasto_descuento</td><td>decimal</td><td>Descuento del gasto</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3 class="item">Reglas críticas de cálculo</h3>
+  <ul>
+    <li><b>Usar <code>adeudo</code>, no <code>importe</code>, para hacer cálculos.</b> <code>importe</code> es permanente: si el cargo se creó en 100, se queda en 100 aunque esté pagado. <code>adeudo</code> es lo pendiente.</li>
+    <li><code>importe</code> se envía <b>solo por si se necesita saber cuánto se debía originalmente</b>.</li>
+    <li>Los campos de accesorios (<code>recargo_*</code>, <code>actualizacion_*</code>, <code>gasto_*</code>, <code>cargo_descuento</code>) son <b>los adeudos de los accesorios ligados al cargo</b>.</li>
+    <li><b>Puede ocurrir que el <code>adeudo</code> del cargo sea 0 y el de sus accesorios sea mayor a 0</b>, por el orden en el que se aplican los pagos.</li>
+  </ul>
+  <h4 class="sub">Prelación en la aplicación de pagos</h4>
+  <div class="prio">
+    <span class="p">multas</span><span class="gt">&gt;</span>
+    <span class="p">recargos</span><span class="gt">&gt;</span>
+    <span class="p">actualizaciones</span><span class="gt">&gt;</span>
+    <span class="p">cargos</span>
+  </div>
+  <p class="metaline">Los pagos se aplican en ese orden. Es la razón por la que un cargo puede quedar en <code>adeudo = 0</code> mientras sus accesorios siguen con saldo.</p>
+</div>
+
+<h3 class="item">3.6 Ejemplo de respuesta</h3>
+<p>Se muestran únicamente los keys correspondientes al convenio; el resto de la respuesta del predio conserva el contrato existente.</p>
+<pre class="json">"convenio": {
+    "id": 26,
+    "descripcion": "PRUEBA",
+    "observaciones": "PRUEBA",
+    "numero_de_pagos": 3,
+    "anticipo": 5310.0,
+    "total": 10667.15,
+    "pagado": 0.0,
+    "adeudo": 10667.15,
+    "folio": "0000025/CONVENIO/26",
+    "fecha_de_solicitud": "2026-08-20T00:00:00",
+    "fecha_de_resolucion": null
+},
+"parcialidades_de_convenio": [
+    {
+        "id": 43,
+        "mensualidad": 0,
+        "numero_de_parcialidad": "anticipo",
+        "numero_de_parcialidades": 3,
+        "fecha_de_vencimiento": "2026-08-20T11:02:18.754331",
+        "importe_de_la_parcialidad": 5310.0,
+        "total_abonado": 0.0,
+        "adeudo": 5310.0,
+        "saldado": false,
+        "cargos_a_pagar": [
+            {
+                "cargo_id": 10069508,
+                "descripcion": "IMPUESTO PREDIAL BIMESTRE 3",
+                "tipo_de_cargo_id": 201,
+                "tipo_de_cargo_descripcion": "IMPUESTO PREDIAL BIMESTRE 3",
+                "importe": 710.65,
+                "adeudo": 710.65,
+                "total_abonado": 0.0,
+                "cargo_descuento": 0.0,
+                "recargo_importe": 314.49,
+                "recargo_descuento": 0.0,
+                "actualizacion_importe": 46.73,
+                "actualizacion_descuento": 0.0,
+                "gasto_importe": 0.0,
+                "gasto_descuento": 0.0
+            },
+            {
+                "cargo_id": 10069507,
+                "descripcion": "IMPUESTO PREDIAL BIMESTRE 4",
+                "tipo_de_cargo_id": 202,
+                "tipo_de_cargo_descripcion": "IMPUESTO PREDIAL BIMESTRE 4",
+                "importe": 704.12,
+                "adeudo": 704.12,
+                "total_abonado": 0.0,
+                "cargo_descuento": 0.0,
+                "recargo_importe": 307.5,
+                "recargo_descuento": 0.0,
+                "actualizacion_importe": 47.19,
+                "actualizacion_descuento": 0.0,
+                "gasto_importe": 0.0,
+                "gasto_descuento": 0.0
+            },
+            {
+                "cargo_id": 10069506,
+                "descripcion": "IMPUESTO PREDIAL BIMESTRE 5",
+                "tipo_de_cargo_id": 203,
+                "tipo_de_cargo_descripcion": "IMPUESTO PREDIAL BIMESTRE 5",
+                "importe": 693.06,
+                "adeudo": 693.06,
+                "total_abonado": 0.0,
+                "cargo_descuento": 0.0,
+                "recargo_importe": 300.51,
+                "recargo_descuento": 0.0,
+                "actualizacion_importe": 43.12,
+                "actualizacion_descuento": 0.0,
+                "gasto_importe": 0.0,
+                "gasto_descuento": 0.0
+            },
+            {
+                "cargo_id": 10069505,
+                "descripcion": "IMPUESTO PREDIAL BIMESTRE 6",
+                "tipo_de_cargo_id": 204,
+                "tipo_de_cargo_descripcion": "IMPUESTO PREDIAL BIMESTRE 6",
+                "importe": 682.88,
+                "adeudo": 682.88,
+                "total_abonado": 0.0,
+                "cargo_descuento": 0.0,
+                "recargo_importe": 293.53,
+                "recargo_descuento": 0.0,
+                "actualizacion_importe": 39.92,
+                "actualizacion_descuento": 0.0,
+                "gasto_importe": 0.0,
+                "gasto_descuento": 0.0
+            },
+            {
+                "cargo_id": 10069516,
+                "descripcion": "IMPUESTO PREDIAL BIMESTRE 1",
+                "tipo_de_cargo_id": 205,
+                "tipo_de_cargo_descripcion": "IMPUESTO PREDIAL BIMESTRE 1",
+                "importe": 670.7,
+                "adeudo": 670.7,
+                "total_abonado": 0.0,
+                "cargo_descuento": 0.0,
+                "recargo_importe": 286.54,
+                "recargo_descuento": 0.0,
+                "actualizacion_importe": 34.73,
+                "actualizacion_descuento": 0.0,
+                "gasto_importe": 0.0,
+                "gasto_descuento": 0.0
+            },
+            {
+                "cargo_id": 10069515,
+                "descripcion": "IMPUESTO PREDIAL BIMESTRE 2",
+                "tipo_de_cargo_id": 206,
+                "tipo_de_cargo_descripcion": "IMPUESTO PREDIAL BIMESTRE 2",
+                "importe": 218.56,
+                "adeudo": 218.56,
+                "total_abonado": 0.0,
+                "cargo_descuento": 0.0,
+                "recargo_importe": 187.59,
+                "recargo_descuento": 0.0,
+                "actualizacion_importe": 30.97,
+                "actualizacion_descuento": 0.0,
+                "gasto_importe": 0.0,
+                "gasto_descuento": 0.0
+            },
+            {
+                "cargo_id": 10069514,
+                "descripcion": "IMPUESTO PREDIAL BIMESTRE 3",
+                "tipo_de_cargo_id": 207,
+                "tipo_de_cargo_descripcion": "IMPUESTO PREDIAL BIMESTRE 3",
+                "importe": 174.72,
+                "adeudo": 174.72,
+                "total_abonado": 0.0,
+                "cargo_descuento": 0.0,
+                "recargo_importe": 174.72,
+                "recargo_descuento": 0.0,
+                "actualizacion_importe": 0.0,
+                "actualizacion_descuento": 0.0,
+                "gasto_importe": 0.0,
+                "gasto_descuento": 0.0
+            },
+            {
+                "cargo_id": 10069513,
+                "descripcion": "IMPUESTO PREDIAL BIMESTRE 4",
+                "tipo_de_cargo_id": 208,
+                "tipo_de_cargo_descripcion": "IMPUESTO PREDIAL BIMESTRE 4",
+                "importe": 174.72,
+                "adeudo": 174.72,
+                "total_abonado": 0.0,
+                "cargo_descuento": 0.0,
+                "recargo_importe": 174.72,
+                "recargo_descuento": 0.0,
+                "actualizacion_importe": 0.0,
+                "actualizacion_descuento": 0.0,
+                "gasto_importe": 0.0,
+                "gasto_descuento": 0.0
+            }
+        ]
+    }
+]</pre>
+<div class="callout info">
+  <b>Lectura del ejemplo:</b> convenio de <code>numero_de_pagos: 3</code> → anticipo + 3 mensualidades = <b>4 pagos</b>. La parcialidad devuelta es la <b>mensualidad 0</b>, es decir el <b>anticipo</b>, por <b>$5,310.00</b>, integrada por 8 cargos de impuesto predial con sus recargos y actualizaciones.
+</div>
+
+<!-- 4 -->
+<h2 class="section break">4. Endpoint 2 — Saldar una parcialidad del convenio</h2>
+<div class="endpoint"><span class="verb">POST</span>{BASE_API_SIR}/recaudacion/recibos-convenio/</div>
+
+<div class="card">
+  <h3 class="item">4.1 Cuerpo de la petición — nivel raíz</h3>
+  <table class="fields">
+    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>metodos_de_pago</td><td>array</td><td>Lista de los métodos de pago usados (§4.2)</td></tr>
+    <tr><td>es_convenio</td><td>bool</td><td>Debe enviarse en <b><code>true</code></b></td></tr>
+    <tr><td>ciudadano</td><td>int</td><td>Id del ciudadano ligado al padrón</td></tr>
+    <tr><td>convenio</td><td>int</td><td>Id del convenio</td></tr>
+    <tr><td>padrones</td><td>array</td><td>Lista de padrones a pagar (§4.3)</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3 class="item">4.2 <code>metodos_de_pago[]</code></h3>
+  <table class="fields">
+    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>metodo</td><td>int</td><td>Id del método de pago usado</td></tr>
+    <tr><td>importe</td><td>decimal</td><td>Lo que se pagó con ese método de pago</td></tr>
+  </table>
+  <div class="callout crit">
+    <b>Regla:</b> la <b>suma de los importes de los métodos de pago debe ser igual al total de la parcialidad.</b>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="item">4.3 <code>padrones[]</code></h3>
+  <table class="fields">
+    <tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+    <tr><td>padron_id</td><td>int</td><td>Id del padrón</td></tr>
+    <tr><td>tipo_de_padron</td><td>int</td><td>Id del tipo de padrón</td></tr>
+    <tr><td>parcialidades</td><td>array&lt;int&gt;</td><td>Ids de las parcialidades a pagar</td></tr>
+    <tr><td>cargos</td><td>array&lt;int&gt;</td><td>Ids de los cargos a pagar</td></tr>
+    <tr><td>importe</td><td>decimal</td><td>Importe <b>con redondeo aplicado</b> (§4.4)</td></tr>
+    <tr><td>importe_sin_redondeo</td><td>decimal</td><td>Importe <b>sin redondeo aplicado</b> (§4.4)</td></tr>
+    <tr><td>convenio</td><td>int</td><td>Id del convenio. Se envía <b>también dentro de cada padrón</b>, además del nivel raíz</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3 class="item">4.4 Reglas de redondeo <span class="chip crit">crítico</span></h3>
+  <p><code>importe</code> e <code>importe_sin_redondeo</code> son <b>valores diferentes</b> que dependen de las reglas de redondeo del sitio:</p>
+  <table>
+    <tr><th>Campo</th><th>Regla</th></tr>
+    <tr><td><code>importe</code></td><td>Redondeado: <b>de 0.51 o mayor redondea hacia arriba</b>; <b>de 0.50 o menor redondea hacia abajo</b></td></tr>
+    <tr><td><code>importe_sin_redondeo</code></td><td>La cantidad <b>sin el redondeo aplicado</b></td></tr>
+  </table>
+  <div class="callout crit">
+    ⚠️ <b>Esto es muy importante:</b> si el sitio <b>no redondea</b> y cobra con centavos, entonces <code>importe</code> debe ir <b>también sin redondear</b>. Es decir, ambos campos llevan el mismo valor cuando el sitio no aplica redondeo.
+  </div>
+</div>
+
+<h3 class="item">4.5 Ejemplo de petición</h3>
+<pre class="json">{
+    "metodos_de_pago": [
+        {
+            "metodo": 1,
+            "importe": 3005.11
+        }
+    ],
+    "es_convenio": true,
+    "ciudadano": 1,
+    "padrones": [
+        {
+            "padron_id": 78080,
+            "tipo_de_padron": 3,
+            "parcialidades": [
+                11371
+            ],
+            "cargos": [
+                14080523,
+                14080524
+            ],
+            "importe": 3005.11,
+            "importe_sin_redondeo": 3005.11,
+            "convenio": 10231
+        }
+    ],
+    "convenio": 10231
+}</pre>
+<div class="callout info">
+  <b>Lectura del ejemplo:</b> un solo método de pago (<code>metodo: 1</code>) por <b>$3,005.11</b>, que coincide con el <code>importe</code> del padrón; un padrón con una parcialidad (<code>11371</code>) y dos cargos. El sitio del ejemplo <b>no aplica redondeo</b>: <code>importe</code> e <code>importe_sin_redondeo</code> son iguales.
+</div>
+
+<!-- 5 -->
+<h2 class="section">5. Reglas de negocio consolidadas</h2>
+<table class="summary">
+  <tr><th>#</th><th>Regla</th><th>Impacto en la integración</th></tr>
+  <tr><td>1</td><td>El anticipo es la <b>mensualidad 0</b></td><td><code>numero_de_pagos</code> + 1 = pagos totales del convenio</td></tr>
+  <tr><td>2</td><td><code>numero_de_parcialidad</code> renombra la mensualidad 0 como <code>"anticipo"</code></td><td>El campo puede llegar como <b>string</b>, no solo como número</td></tr>
+  <tr><td>3</td><td>La consulta devuelve <b>solo la siguiente parcialidad</b></td><td>No construir el calendario completo a partir de esta respuesta</td></tr>
+  <tr><td>4</td><td><code>saldado</code> <b>siempre llega <code>false</code></b> en esta petición</td><td>No usarlo como señal de estado</td></tr>
+  <tr><td>5</td><td>Usar <b><code>adeudo</code></b> para todo cálculo de cobro; <code>importe</code> es histórico y permanente</td><td>Un cargo pagado sigue mostrando su <code>importe</code> original</td></tr>
+  <tr><td>6</td><td>Los accesorios pueden tener adeudo aunque el cargo esté en 0</td><td>Sumar los accesorios; no cortar el cálculo si <code>adeudo</code> del cargo es 0</td></tr>
+  <tr><td>7</td><td>Prelación de pagos: <code>multas &gt; recargos &gt; actualizaciones &gt; cargos</code></td><td>Explica el caso de la regla 6</td></tr>
+  <tr><td>8</td><td>La suma de <code>metodos_de_pago</code> debe igualar el total de la parcialidad</td><td>Validar antes de enviar; evita rechazos del recibo</td></tr>
+  <tr><td>9</td><td>Si el sitio no redondea, <code>importe</code> va <b>sin redondear</b></td><td>Ambos campos de importe llevan el mismo valor</td></tr>
+</table>
+
+<!-- 6 -->
+<h2 class="section">6. Checklist de implementación</h2>
+<ul class="checklist">
+  <li>Consumir <code>POST /catastro/predio-con-adeudos/adeudos/</code> con <code>clave_catastral_municipal</code>, <code>periodo</code> y <code>bimestre</code>.</li>
+  <li>Detectar la presencia del key <code>convenio</code> y cambiar al flujo de convenio.</li>
+  <li>Presentar al ciudadano <b>la parcialidad devuelta</b> (la siguiente por pagar), no el calendario completo.</li>
+  <li>Manejar <code>numero_de_parcialidad</code> con valor <code>"anticipo"</code> (tipo string) sin romper el parseo.</li>
+  <li>Calcular el cobro con <code>adeudo</code>, nunca con <code>importe</code>.</li>
+  <li>Sumar los adeudos de accesorios (<code>recargo_*</code>, <code>actualizacion_*</code>, <code>gasto_*</code>) aunque el cargo esté en 0.</li>
+  <li>No usar <code>saldado</code> como indicador de estado (siempre llega <code>false</code>).</li>
+  <li>Validar que la suma de <code>metodos_de_pago</code> sea igual al total de la parcialidad <b>antes</b> de enviar.</li>
+  <li>Aplicar la regla de redondeo del sitio y enviar <code>importe</code> / <code>importe_sin_redondeo</code> en consecuencia.</li>
+  <li>Enviar <code>es_convenio: true</code>, <code>ciudadano</code>, <code>convenio</code> y el arreglo <code>padrones</code> con parcialidades y cargos.</li>
+  <li>Consumir <code>POST /recaudacion/recibos-convenio/</code> y conservar el folio del recibo emitido.</li>
+  <li>Probar el caso del <b>anticipo</b> (mensualidad 0) y el de una <b>mensualidad intermedia</b>.</li>
+</ul>
+
+<div class="foot">
+  SiGOB · Manual de Integración — Convenios de Pago · SIR ↔ SIMUN · Versión 1.0 · 2026-08-25
+</div>
+
+</div>
+</body>
+</html>

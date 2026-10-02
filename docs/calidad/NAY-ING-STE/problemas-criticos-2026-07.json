@@ -1,0 +1,1872 @@
+{
+  "proyecto": "Ecosistema Hacienda Nayarit",
+  "fecha_analisis": "2026-07",
+  "fuentes": [
+    "sonarqube",
+    "ciberseguridad_pentest",
+    "lighthouse"
+  ],
+  "problemas_criticos": [
+    {
+      "id": "P001",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Complejidad cognitiva excesiva en la función JS/React: demasiado difícil de leer y mantener; alto riesgo de bugs.",
+      "regla": "javascript:S3776",
+      "impacto_seguridad": null,
+      "ocurrencias": 83,
+      "esfuerzo_min_total": 1624,
+      "descripcion": "Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed.",
+      "archivos_ejemplo": [
+        "src/api/utils/expiryDate.js",
+        "src/components/Catalogos/ModalTramitesVehiculares.jsx",
+        "src/components/FormsAddBusquedaAvanzada.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P002",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Funciones anidadas demasiado profundas (callbacks dentro de callbacks); dificulta lectura y depuración.",
+      "regla": "javascript:S2004",
+      "impacto_seguridad": null,
+      "ocurrencias": 68,
+      "esfuerzo_min_total": 1360,
+      "descripcion": "Refactor this code to not nest functions more than 4 levels deep.",
+      "archivos_ejemplo": [
+        "src/components/Catalogos/HorariosEmpresa.jsx",
+        "src/components/Catalogos/ModalAgregarDescuentos.jsx",
+        "src/components/Editor/index.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P003",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "CRITICAL",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S930) This function expects 1 argument, but 2 were provided.",
+      "regla": "javascript:S930",
+      "impacto_seguridad": null,
+      "ocurrencias": 31,
+      "esfuerzo_min_total": 310,
+      "descripcion": "This function expects 1 argument, but 2 were provided.",
+      "archivos_ejemplo": [
+        "src/Router.jsx",
+        "src/components/Catalogos/ActividadesEconomicas.jsx",
+        "src/components/Catalogos/ObligacionesFiscalesContribuyente.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P004",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla javascript:S3972) Move this \"if\" to a new line or add the missing \"else\".",
+      "regla": "javascript:S3972",
+      "impacto_seguridad": null,
+      "ocurrencias": 31,
+      "esfuerzo_min_total": 310,
+      "descripcion": "Move this \"if\" to a new line or add the missing \"else\".",
+      "archivos_ejemplo": [
+        "src/components/Catalogos/HistorialDePlacas.jsx",
+        "src/components/Catalogos/HistorialDePlacasMotocicleta.jsx",
+        "src/components/Catalogos/HistorialDePlacasRemolques.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P005",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6523) Unsafe usage of optional chaining. If it short-circuits with 'undefined' the evaluation will throw TypeError.",
+      "regla": "javascript:S6523",
+      "impacto_seguridad": null,
+      "ocurrencias": 22,
+      "esfuerzo_min_total": 110,
+      "descripcion": "Unsafe usage of optional chaining. If it short-circuits with 'undefined' the evaluation will throw TypeError.",
+      "archivos_ejemplo": [
+        "src/api/catalogos/conceptosDeIngresos.js",
+        "src/api/cuentaunicasir.js",
+        "src/api/recaudacion/conceptosDeMultas.js"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P006",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6440) React Hook \"usePaginatedFetcher\" is called conditionally. React Hooks must be called in the exact same order in every component render.",
+      "regla": "javascript:S6440",
+      "impacto_seguridad": null,
+      "ocurrencias": 8,
+      "esfuerzo_min_total": 80,
+      "descripcion": "React Hook \"usePaginatedFetcher\" is called conditionally. React Hooks must be called in the exact same order in every component render.",
+      "archivos_ejemplo": [
+        "src/components/Direccion/Modal.jsx",
+        "src/components/FormDatosDePago.jsx",
+        "src/components/ModalDireccion.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P007",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "CRITICAL",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S2871) Provide a compare function that depends on \"String.localeCompare\", to reliably sort elements alphabetically.",
+      "regla": "javascript:S2871",
+      "impacto_seguridad": null,
+      "ocurrencias": 5,
+      "esfuerzo_min_total": 50,
+      "descripcion": "Provide a compare function that depends on \"String.localeCompare\", to reliably sort elements alphabetically.",
+      "archivos_ejemplo": [
+        "src/components/Permisos.jsx",
+        "src/views/Configuracion/Usuarios.jsx",
+        "src/views/LeyDeIngresos/ConsultaDeDeclaraciones/index.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P008",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla css:S4649) Missing generic font family",
+      "regla": "css:S4649",
+      "impacto_seguridad": null,
+      "ocurrencias": 5,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Missing generic font family",
+      "archivos_ejemplo": [
+        "src/views/Landing/index.scss"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P009",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6638) Unexpected constant truthiness on the left-hand side of a `||` expression.",
+      "regla": "javascript:S6638",
+      "impacto_seguridad": null,
+      "ocurrencias": 4,
+      "esfuerzo_min_total": 20,
+      "descripcion": "Unexpected constant truthiness on the left-hand side of a `||` expression.",
+      "archivos_ejemplo": [
+        "src/components/Direccion/Verificada.jsx",
+        "src/components/InputSearch.jsx",
+        "src/components/PadronMultiple.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P010",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S7727) Do not pass function `filterFn` directly to `.filter(…)`.",
+      "regla": "javascript:S7727",
+      "impacto_seguridad": null,
+      "ocurrencias": 3,
+      "esfuerzo_min_total": 15,
+      "descripcion": "Do not pass function `filterFn` directly to `.filter(…)`.",
+      "archivos_ejemplo": [
+        "src/store/reducers/catalogs/index.js",
+        "src/views/Recaudacion/Caja/PanelPadron.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P011",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S3923) Remove this conditional structure or edit its code blocks so that they're not all the same.",
+      "regla": "javascript:S3923",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 30,
+      "descripcion": "Remove this conditional structure or edit its code blocks so that they're not all the same.",
+      "archivos_ejemplo": [
+        "src/components/Table.jsx",
+        "src/views/Padrones/GestionDePlacas/AsignacionDePlacas/ModalActionsPlacas.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P012",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla Web:S5254) Add \"lang\" and/or \"xml:lang\" attributes to this \"<html>\" element",
+      "regla": "Web:S5254",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 2,
+      "descripcion": "Add \"lang\" and/or \"xml:lang\" attributes to this \"<html>\" element",
+      "archivos_ejemplo": [
+        "public/index.html"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P013",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MINOR",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla Web:S5725) Make sure not using resource integrity feature is safe here.",
+      "regla": "Web:S5725",
+      "impacto_seguridad": "LOW",
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Make sure not using resource integrity feature is safe here.",
+      "archivos_ejemplo": [
+        "public/index.html"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P014",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "Uso del valor de retorno de una función que no retorna nada.",
+      "regla": "javascript:S3699",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Remove this use of the output from \"UserAvatar\"; \"UserAvatar\" doesn't return anything.",
+      "archivos_ejemplo": [
+        "src/components/Layout/index.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P015",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S905) Expected an assignment or function call and instead saw an expression.",
+      "regla": "javascript:S905",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Expected an assignment or function call and instead saw an expression.",
+      "archivos_ejemplo": [
+        "src/components/Layout/index.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P016",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla css:S4656) Duplicate property \"height\"",
+      "regla": "css:S4656",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 1,
+      "descripcion": "Duplicate property \"height\"",
+      "archivos_ejemplo": [
+        "src/components/Layout/index.scss"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P017",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MINOR",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla javascript:S5148) Make sure not using \"noopener\" is safe here.",
+      "regla": "javascript:S5148",
+      "impacto_seguridad": "LOW",
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 1,
+      "descripcion": "Make sure not using \"noopener\" is safe here.",
+      "archivos_ejemplo": [
+        "src/utils/handlers.js"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P018",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6323) Remove this empty alternative.",
+      "regla": "javascript:S6323",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Remove this empty alternative.",
+      "archivos_ejemplo": [
+        "src/views/Configuracion/ClasificadoresDeTiposDeCargos.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P019",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "CRITICAL",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla css:S4651) Nonstandard direction",
+      "regla": "css:S4651",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 1,
+      "descripcion": "Nonstandard direction",
+      "archivos_ejemplo": [
+        "src/views/Landing/index.scss"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P020",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla javascript:S4123) Unexpected `await` of a non-Promise (non-\"Thenable\") value.",
+      "regla": "javascript:S4123",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 1,
+      "descripcion": "Unexpected `await` of a non-Promise (non-\"Thenable\") value.",
+      "archivos_ejemplo": [
+        "src/views/PAE/UnidadesEjecutoras.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P021",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S1764) Correct one of the identical sub-expressions on both sides of operator \"||\"",
+      "regla": "javascript:S1764",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 2,
+      "descripcion": "Correct one of the identical sub-expressions on both sides of operator \"||\"",
+      "archivos_ejemplo": [
+        "src/views/PAE/components/padronFormats.js"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P022",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S2137) Do not use \"Map\" to declare a variable - use another name.",
+      "regla": "javascript:S2137",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Do not use \"Map\" to declare a variable - use another name.",
+      "archivos_ejemplo": [
+        "src/views/Tramites/GPM/components/ArcGisMap.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P023",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "OPENSIR-FRONTEND",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S5850) Group parts of the regex together to make the intended operator precedence explicit.",
+      "regla": "javascript:S5850",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Group parts of the regex together to make the intended operator precedence explicit.",
+      "archivos_ejemplo": [
+        "src/views/Tramites/GPM/components/ModalInfoRepuve.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P024",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Cadenas de texto literales duplicadas: la misma cadena se repite muchas veces en vez de usar una constante. Dificulta el mantenimiento y facilita errores al cambiar valores.",
+      "regla": "python:S1192",
+      "impacto_seguridad": null,
+      "ocurrencias": 1059,
+      "esfuerzo_min_total": 21668,
+      "descripcion": "Define a constant instead of duplicating this literal 'Código no válido' 3 times.",
+      "archivos_ejemplo": [
+        "opensir/catalogos/migrations/0001_initial.py",
+        "opensir/catalogos/migrations/0003_initial.py",
+        "opensir/catalogos/migrations/0006_auto_20220912_0921.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P025",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Complejidad cognitiva excesiva: la función es demasiado difícil de entender (demasiados anidamientos/ramas). Alto riesgo de bugs y difícil de mantener.",
+      "regla": "python:S3776",
+      "impacto_seguridad": null,
+      "ocurrencias": 337,
+      "esfuerzo_min_total": 23070,
+      "descripcion": "Refactor this function to reduce its Cognitive Complexity from 33 to the 15 allowed.",
+      "archivos_ejemplo": [
+        "opensir/catalogos/serializers/concepto_de_ingreso.py",
+        "opensir/catalogos/serializers/configuracion_de_la_entidad.py",
+        "opensir/catalogos/serializers/periodo_fiscal.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P026",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Captura de SystemExit o excepciones base sin re-lanzarlas; puede ocultar fallos o impedir el cierre correcto del proceso.",
+      "regla": "python:S5754",
+      "impacto_seguridad": null,
+      "ocurrencias": 162,
+      "esfuerzo_min_total": 810,
+      "descripcion": "Specify an exception class to catch or reraise the exception",
+      "archivos_ejemplo": [
+        "opensir/catalogos/serializers/periodo_fiscal.py",
+        "opensir/catastro/serializers/participe.py",
+        "opensir/catastro/serializers/predio.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P027",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S8512) Remove this assignment; \"entidad\" is assigned again on line 51.",
+      "regla": "python:S8512",
+      "impacto_seguridad": null,
+      "ocurrencias": 35,
+      "esfuerzo_min_total": 175,
+      "descripcion": "Remove this assignment; \"entidad\" is assigned again on line 51.",
+      "archivos_ejemplo": [
+        "opensir/catalogos/admin.py",
+        "opensir/catalogos/models/desgloses_de_efectivo.py",
+        "opensir/catalogos/models/gruas.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P028",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla Web:S5256) Add \"<th>\" headers to this \"<table>\".",
+      "regla": "Web:S5256",
+      "impacto_seguridad": null,
+      "ocurrencias": 22,
+      "esfuerzo_min_total": 44,
+      "descripcion": "Add \"<th>\" headers to this \"<table>\".",
+      "archivos_ejemplo": [
+        "opensir/templates/concentrado_de_ingresos.html",
+        "opensir/templates/constancia_situacion_municipal.html",
+        "opensir/templates/detalle_de_movimientos.html"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P029",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S1656) Remove or correct this useless self-assignment.",
+      "regla": "python:S1656",
+      "impacto_seguridad": null,
+      "ocurrencias": 16,
+      "esfuerzo_min_total": 48,
+      "descripcion": "Remove or correct this useless self-assignment.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/serializers/cargo.py",
+        "opensir/recaudacion/serializers/descuento.py",
+        "opensir/recaudacion/utils/cargos.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P030",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S1186) Add a nested comment explaining why this method is empty, or complete the implementation.",
+      "regla": "python:S1186",
+      "impacto_seguridad": null,
+      "ocurrencias": 14,
+      "esfuerzo_min_total": 70,
+      "descripcion": "Add a nested comment explaining why this method is empty, or complete the implementation.",
+      "archivos_ejemplo": [
+        "opensir/cuentaunicasir/serializers/cargos.py",
+        "opensir/recaudacion/serializers/cargo.py",
+        "opensir/recaudacion/serializers/vehiculo/vehiculo_baja_permanente.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P031",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla python:S4830) Enable server certificate validation on this SSL/TLS connection.",
+      "regla": "python:S4830",
+      "impacto_seguridad": "HIGH",
+      "ocurrencias": 13,
+      "esfuerzo_min_total": 65,
+      "descripcion": "Enable server certificate validation on this SSL/TLS connection.",
+      "archivos_ejemplo": [
+        "opensir/empresa/views/declaraciones_empresariales.py",
+        "opensir/recaudacion/tasks/generar_pdf_ejecuciones_masivo.py",
+        "opensir/recaudacion/tasks/scripts.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P032",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S4143) Verify this is the key that was intended; a value has already been saved for it on line 379.",
+      "regla": "python:S4143",
+      "impacto_seguridad": null,
+      "ocurrencias": 11,
+      "esfuerzo_min_total": 55,
+      "descripcion": "Verify this is the key that was intended; a value has already been saved for it on line 379.",
+      "archivos_ejemplo": [
+        "opensir/empresa/mixins/mixin_declaraciones_empresariales.py",
+        "opensir/recaudacion/serializers/vehiculo/caja.py",
+        "opensir/tramites/serializers/plantilla_de_retys.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P033",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S2208) Import only needed names or import the module and then use its members.",
+      "regla": "python:S2208",
+      "impacto_seguridad": null,
+      "ocurrencias": 8,
+      "esfuerzo_min_total": 40,
+      "descripcion": "Import only needed names or import the module and then use its members.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/utils/orden_de_pago.py",
+        "opensir/recaudacion/utils/orden_reporteador.py",
+        "opensir/recaudacion/utils/orden_reporteador_persistida.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P034",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla Web:PageWithoutTitleCheck) Add a <title> tag to this page.",
+      "regla": "Web:PageWithoutTitleCheck",
+      "impacto_seguridad": null,
+      "ocurrencias": 8,
+      "esfuerzo_min_total": 40,
+      "descripcion": "Add a <title> tag to this page.",
+      "archivos_ejemplo": [
+        "opensir/templates/includes/footer.html",
+        "opensir/templates/includes/footer_entidad.html",
+        "opensir/templates/includes/footer_landscape.html"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P035",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S5727) Remove this identity check; it will always be True.",
+      "regla": "python:S5727",
+      "impacto_seguridad": null,
+      "ocurrencias": 7,
+      "esfuerzo_min_total": 70,
+      "descripcion": "Remove this identity check; it will always be True.",
+      "archivos_ejemplo": [
+        "opensir/catastro/serializers/participe.py",
+        "opensir/cuentaunicasir/utils/opinion_de_las_obligaciones.py",
+        "opensir/recaudacion/stored_procedures/polizas_de_ingreso.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P036",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla python:S2068) \"password\" detected here, review this potentially hard-coded credential.",
+      "regla": "python:S2068",
+      "impacto_seguridad": "MEDIUM",
+      "ocurrencias": 5,
+      "esfuerzo_min_total": 150,
+      "descripcion": "\"password\" detected here, review this potentially hard-coded credential.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/utils/infracciones.py",
+        "opensir/recaudacion/views/infraccion.py",
+        "opensir/usuarios/serializers/usuario.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P037",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Expresión constante usada como condición: la condición siempre da el mismo resultado, indicando un bug lógico.",
+      "regla": "python:S5797",
+      "impacto_seguridad": null,
+      "ocurrencias": 4,
+      "esfuerzo_min_total": 8,
+      "descripcion": "Replace this expression; used as a condition it will always be constant.",
+      "archivos_ejemplo": [
+        "config/settings/base.py",
+        "opensir/empresa/views/declaraciones_empresariales.py",
+        "opensir/recaudacion/tasks/cargos.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P038",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S5720) Rename \"value\" to \"self\" or add the missing \"self\" parameter.",
+      "regla": "python:S5720",
+      "impacto_seguridad": null,
+      "ocurrencias": 4,
+      "esfuerzo_min_total": 20,
+      "descripcion": "Rename \"value\" to \"self\" or add the missing \"self\" parameter.",
+      "archivos_ejemplo": [
+        "opensir/catalogos/serializers/tipo_de_ficta.py",
+        "opensir/recaudacion/serializers/clasificador_de_tipos_de_cargo_en_portal.py",
+        "opensir/recaudacion/serializers/webhook_netpay.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P039",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "BLOCKER",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S3516) Refactor this method to not always return the same value.",
+      "regla": "python:S3516",
+      "impacto_seguridad": null,
+      "ocurrencias": 4,
+      "esfuerzo_min_total": 8,
+      "descripcion": "Refactor this method to not always return the same value.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/filters/lotes_de_panteon.py",
+        "opensir/recaudacion/filters/vehiculo.py",
+        "opensir/recaudacion/serializers/cargo.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P040",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S1862) This branch duplicates the one on line 2246.",
+      "regla": "python:S1862",
+      "impacto_seguridad": null,
+      "ocurrencias": 4,
+      "esfuerzo_min_total": 40,
+      "descripcion": "This branch duplicates the one on line 2246.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/serializers/cargo.py",
+        "opensir/recaudacion/views/cargo.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P041",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S905) Remove or refactor this statement; it has no side effects.",
+      "regla": "python:S905",
+      "impacto_seguridad": null,
+      "ocurrencias": 3,
+      "esfuerzo_min_total": 30,
+      "descripcion": "Remove or refactor this statement; it has no side effects.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/serializers/cargo.py",
+        "opensir/recaudacion/serializers/recibo.py",
+        "opensir/recaudacion/utils/registro_padron_vehicular.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P042",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "BLOCKER",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S2275) Fix this formatted string's syntax.",
+      "regla": "python:S2275",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 20,
+      "descripcion": "Fix this formatted string's syntax.",
+      "archivos_ejemplo": [
+        "opensir/catastro/models/tasas_dap_rural.py",
+        "opensir/configuracion/models/terminales.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P043",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MINOR",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla Web:S5725) Make sure not using resource integrity feature is safe here.",
+      "regla": "Web:S5725",
+      "impacto_seguridad": "LOW",
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Make sure not using resource integrity feature is safe here.",
+      "archivos_ejemplo": [
+        "opensir/configuracion/templates/swagger_ui.html"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P044",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "BLOCKER",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S935) Return a value of type `str` here.",
+      "regla": "python:S935",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Return a value of type `str` here.",
+      "archivos_ejemplo": [
+        "opensir/core/utils/interpreter/read_only_queryset.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P045",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "BLOCKER",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S5632) Change this code so that it raises an object deriving from BaseException.",
+      "regla": "python:S5632",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Change this code so that it raises an object deriving from BaseException.",
+      "archivos_ejemplo": [
+        "opensir/cuentaunicasir/serializers/opinion_de_las_obligaciones.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P046",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "BLOCKER",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S3827) lowest_point is used before it is defined. Move the definition before.",
+      "regla": "python:S3827",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 20,
+      "descripcion": "lowest_point is used before it is defined. Move the definition before.",
+      "archivos_ejemplo": [
+        "opensir/cuentaunicasir/utils/opinion_de_las_obligaciones.py",
+        "opensir/recaudacion/utils/orden_de_pago.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P047",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MINOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S1226) Introduce a new variable or use its initial value before reassigning 'hex_dig'.",
+      "regla": "python:S1226",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Introduce a new variable or use its initial value before reassigning 'hex_dig'.",
+      "archivos_ejemplo": [
+        "opensir/cuentaunicasir/views/codigo_atenticacion.py",
+        "opensir/recaudacion/views/pagos_externos.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P048",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S3923) This conditional expression returns the same value whether the condition is \"true\" or \"false\".",
+      "regla": "python:S3923",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 30,
+      "descripcion": "This conditional expression returns the same value whether the condition is \"true\" or \"false\".",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/serializers/generar_recibo.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P049",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S5655) Change this argument; Function \"post\" expects a different type",
+      "regla": "python:S5655",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 40,
+      "descripcion": "Change this argument; Function \"post\" expects a different type",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/utils/formateo_variables.py",
+        "opensir/usuarios/views/usuario.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P050",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "BLOCKER",
+      "tipo": "BUG",
+      "descripcion_es": "Número de argumentos incorrecto en llamada a función.",
+      "regla": "python:S930",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 20,
+      "descripcion": "Add 1 missing arguments; 'registrar_anomalia_alert' expects 3 positional arguments.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/utils/orden_de_pago.py",
+        "opensir/tramites/views/lecturas_arcos.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P051",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "BLOCKER",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S5719) Add a \"self\" or class parameter",
+      "regla": "python:S5719",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Add a \"self\" or class parameter",
+      "archivos_ejemplo": [
+        "opensir/catalogos/serializers/periodo_fiscal.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P052",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S6903) Don't use `datetime.datetime.utcnow` to create this datetime object.",
+      "regla": "python:S6903",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Don't use `datetime.datetime.utcnow` to create this datetime object.",
+      "archivos_ejemplo": [
+        "opensir/cuentaunicasir/views/codigo_atenticacion.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P053",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S8504) Add a return statement to this property method.",
+      "regla": "python:S8504",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Add a return statement to this property method.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/models/descuentos.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P054",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "BLOCKER",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S5724) Remove 2 parameters; property getter methods receive only \"self\".",
+      "regla": "python:S5724",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Remove 2 parameters; property getter methods receive only \"self\".",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/serializers/cargo.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P055",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S3981) The length of a collection is always \">=0\", so update this test to either \"==0\" or \">0\".",
+      "regla": "python:S3981",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 2,
+      "descripcion": "The length of a collection is always \">=0\", so update this test to either \"==0\" or \">0\".",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/serializers/tipo_de_cargo.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P056",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla python:S8510) Rename this loop variable; it shadows the outer loop variable \"descuento\".",
+      "regla": "python:S8510",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 2,
+      "descripcion": "Rename this loop variable; it shadows the outer loop variable \"descuento\".",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/utils/descuentos_cargos.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P057",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S1763) Delete this unreachable code or refactor the code to make it reachable.",
+      "regla": "python:S1763",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Delete this unreachable code or refactor the code to make it reachable.",
+      "archivos_ejemplo": [
+        "opensir/recaudacion/utils/referencia_de_pago.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P058",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla python:S3699) Remove this use of the output from \"remove\"; \"remove\" doesn’t return anything.",
+      "regla": "python:S3699",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Remove this use of the output from \"remove\"; \"remove\" doesn’t return anything.",
+      "archivos_ejemplo": [
+        "opensir/tramites/serializers/plantilla_de_tramite.py"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P059",
+      "origen": "sonarqube",
+      "capa": "backend",
+      "proyecto": "opensir",
+      "severidad": "CRITICAL",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla css:S4657) Overridden property \"padding-bottom\" by shorthand \"padding\"",
+      "regla": "css:S4657",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Overridden property \"padding-bottom\" by shorthand \"padding\"",
+      "archivos_ejemplo": [
+        "staticfiles/css/styles.css"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P060",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Complejidad cognitiva excesiva en la función JS/React: demasiado difícil de leer y mantener; alto riesgo de bugs.",
+      "regla": "javascript:S3776",
+      "impacto_seguridad": null,
+      "ocurrencias": 14,
+      "esfuerzo_min_total": 198,
+      "descripcion": "Refactor this function to reduce its Cognitive Complexity from 23 to the 15 allowed.",
+      "archivos_ejemplo": [
+        "src/components/Catalogos/TableAnexos.jsx",
+        "src/components/NumericInput.jsx",
+        "src/components/Table.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P061",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Funciones anidadas demasiado profundas (callbacks dentro de callbacks); dificulta lectura y depuración.",
+      "regla": "javascript:S2004",
+      "impacto_seguridad": null,
+      "ocurrencias": 8,
+      "esfuerzo_min_total": 160,
+      "descripcion": "Refactor this code to not nest functions more than 4 levels deep.",
+      "archivos_ejemplo": [
+        "src/components/MultipleMap.jsx",
+        "src/utils/filters.js",
+        "src/views/MiBuzon/FichasPublicadas/index.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P062",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "CRITICAL",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S930) This function expects no arguments, but 1 was provided.",
+      "regla": "javascript:S930",
+      "impacto_seguridad": null,
+      "ocurrencias": 7,
+      "esfuerzo_min_total": 70,
+      "descripcion": "This function expects no arguments, but 1 was provided.",
+      "archivos_ejemplo": [
+        "src/components/BusquedaAvanzadaUsers.jsx",
+        "src/components/Catalogos/CanalesDePago.jsx",
+        "src/components/Catalogos/ConfiguracionDeFolios.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P063",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "CRITICAL",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S2871) Provide a compare function to avoid sorting elements alphabetically.",
+      "regla": "javascript:S2871",
+      "impacto_seguridad": null,
+      "ocurrencias": 3,
+      "esfuerzo_min_total": 30,
+      "descripcion": "Provide a compare function to avoid sorting elements alphabetically.",
+      "archivos_ejemplo": [
+        "src/views/Administracion/Usuarios.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P064",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla javascript:S3972) Move this \"if\" to a new line or add the missing \"else\".",
+      "regla": "javascript:S3972",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 20,
+      "descripcion": "Move this \"if\" to a new line or add the missing \"else\".",
+      "archivos_ejemplo": [
+        "src/views/LandingEntidad/index.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P065",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "MINOR",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla Web:S5725) Make sure not using resource integrity feature is safe here.",
+      "regla": "Web:S5725",
+      "impacto_seguridad": "LOW",
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Make sure not using resource integrity feature is safe here.",
+      "archivos_ejemplo": [
+        "public/index.html"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P066",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6638) Unexpected constant truthiness on the left-hand side of a `||` expression.",
+      "regla": "javascript:S6638",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Unexpected constant truthiness on the left-hand side of a `||` expression.",
+      "archivos_ejemplo": [
+        "src/components/InputSearch.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P067",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "BLOCKER",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla javascript:S6418) \"accessToken\" detected here, make sure this is not a hard-coded secret.",
+      "regla": "javascript:S6418",
+      "impacto_seguridad": "BLOCKER",
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 30,
+      "descripcion": "\"accessToken\" detected here, make sure this is not a hard-coded secret.",
+      "archivos_ejemplo": [
+        "src/components/MultipleMap.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P068",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6440) React Hook \"usePaginatedFetcher\" is called conditionally. React Hooks must be called in the exact same order in every component render.",
+      "regla": "javascript:S6440",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 10,
+      "descripcion": "React Hook \"usePaginatedFetcher\" is called conditionally. React Hooks must be called in the exact same order in every component render.",
+      "archivos_ejemplo": [
+        "src/components/Select.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P069",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "retys",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla css:S4656) Duplicate property \"height\"",
+      "regla": "css:S4656",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 1,
+      "descripcion": "Duplicate property \"height\"",
+      "archivos_ejemplo": [
+        "src/views/App/index.scss"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P070",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Complejidad cognitiva excesiva en la función JS/React: demasiado difícil de leer y mantener; alto riesgo de bugs.",
+      "regla": "javascript:S3776",
+      "impacto_seguridad": null,
+      "ocurrencias": 45,
+      "esfuerzo_min_total": 785,
+      "descripcion": "Refactor this function to reduce its Cognitive Complexity from 21 to the 15 allowed.",
+      "archivos_ejemplo": [
+        "src/api/padrones.js",
+        "src/api/recaudacion.js",
+        "src/api/tramites.js"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P071",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "Funciones anidadas demasiado profundas (callbacks dentro de callbacks); dificulta lectura y depuración.",
+      "regla": "javascript:S2004",
+      "impacto_seguridad": null,
+      "ocurrencias": 29,
+      "esfuerzo_min_total": 580,
+      "descripcion": "Refactor this code to not nest functions more than 4 levels deep.",
+      "archivos_ejemplo": [
+        "src/views/Appointments/components/ConsultaCita.jsx",
+        "src/views/Appointments/components/DatosCita.jsx",
+        "src/views/MiCuenta/MiExpediente.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P072",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla javascript:S3972) Move this \"if\" to a new line or add the missing \"else\".",
+      "regla": "javascript:S3972",
+      "impacto_seguridad": null,
+      "ocurrencias": 17,
+      "esfuerzo_min_total": 170,
+      "descripcion": "Move this \"if\" to a new line or add the missing \"else\".",
+      "archivos_ejemplo": [
+        "src/components/FormISAN.jsx",
+        "src/components/FormISANAnual.jsx",
+        "src/views/Payments/Form.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P073",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6440) React Hook \"useEffect\" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React ",
+      "regla": "javascript:S6440",
+      "impacto_seguridad": null,
+      "ocurrencias": 17,
+      "esfuerzo_min_total": 170,
+      "descripcion": "React Hook \"useEffect\" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React ",
+      "archivos_ejemplo": [
+        "src/components/LadaNumero.jsx",
+        "src/components/Mapa.jsx",
+        "src/components/PaginatedSelect.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P074",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "CRITICAL",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S930) This function expects no arguments, but 1 was provided.",
+      "regla": "javascript:S930",
+      "impacto_seguridad": null,
+      "ocurrencias": 8,
+      "esfuerzo_min_total": 80,
+      "descripcion": "This function expects no arguments, but 1 was provided.",
+      "archivos_ejemplo": [
+        "src/api/padrones.js",
+        "src/components/FormCedularProfesionalAnual.jsx",
+        "src/components/InputSearch.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P075",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MINOR",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla javascript:S5148) Make sure not using \"noopener\" is safe here.",
+      "regla": "javascript:S5148",
+      "impacto_seguridad": "LOW",
+      "ocurrencias": 5,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Make sure not using \"noopener\" is safe here.",
+      "archivos_ejemplo": [
+        "src/components/Layout.jsx",
+        "src/views/Home.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P076",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6959) Add an initial value to this \"reduce()\" call.",
+      "regla": "javascript:S6959",
+      "impacto_seguridad": null,
+      "ocurrencias": 4,
+      "esfuerzo_min_total": 8,
+      "descripcion": "Add an initial value to this \"reduce()\" call.",
+      "archivos_ejemplo": [
+        "src/components/FormCedularArrendamientoAnual.jsx",
+        "src/components/FormCedularArrendamientoMensual.jsx",
+        "src/components/FormCedularMensual.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P077",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S3923) This conditional operation returns the same value whether the condition is \"true\" or \"false\".",
+      "regla": "javascript:S3923",
+      "impacto_seguridad": null,
+      "ocurrencias": 4,
+      "esfuerzo_min_total": 60,
+      "descripcion": "This conditional operation returns the same value whether the condition is \"true\" or \"false\".",
+      "archivos_ejemplo": [
+        "src/components/FormCedularArrendamientoAnual.jsx",
+        "src/components/FormCedularArrendamientoMensual.jsx",
+        "src/components/FormCedularProfesionalAnual.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P078",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S7727) Do not pass function `filterFn` directly to `.filter(…)`.",
+      "regla": "javascript:S7727",
+      "impacto_seguridad": null,
+      "ocurrencias": 2,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Do not pass function `filterFn` directly to `.filter(…)`.",
+      "archivos_ejemplo": [
+        "src/utils/debtsFormatter.js"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P079",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MINOR",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla Web:S5725) Make sure not using resource integrity feature is safe here.",
+      "regla": "Web:S5725",
+      "impacto_seguridad": "LOW",
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Make sure not using resource integrity feature is safe here.",
+      "archivos_ejemplo": [
+        "public/index.html"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P080",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "CRITICAL",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla css:S4657) Overridden property \"background-color\" by shorthand \"background\"",
+      "regla": "css:S4657",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Overridden property \"background-color\" by shorthand \"background\"",
+      "archivos_ejemplo": [
+        "src/app.scss"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P081",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S3403) Remove this \"===\" check; it will always be false. Did you mean to use \"==\"?",
+      "regla": "javascript:S3403",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Remove this \"===\" check; it will always be false. Did you mean to use \"==\"?",
+      "archivos_ejemplo": [
+        "src/components/FormISAN.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P082",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S6638) Unexpected constant truthiness on the left-hand side of a `||` expression.",
+      "regla": "javascript:S6638",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 5,
+      "descripcion": "Unexpected constant truthiness on the left-hand side of a `||` expression.",
+      "archivos_ejemplo": [
+        "src/components/InputSearch.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P083",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "BLOCKER",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "(Regla javascript:S6418) \"MAPBOX_TOKEN\" detected here, make sure this is not a hard-coded secret.",
+      "regla": "javascript:S6418",
+      "impacto_seguridad": "BLOCKER",
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 30,
+      "descripcion": "\"MAPBOX_TOKEN\" detected here, make sure this is not a hard-coded secret.",
+      "archivos_ejemplo": [
+        "src/utils/env.js"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P084",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "BLOCKER",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla javascript:S3516) Refactor this function to not always return the same value.",
+      "regla": "javascript:S3516",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 6,
+      "descripcion": "Refactor this function to not always return the same value.",
+      "archivos_ejemplo": [
+        "src/views/Appointments/components/DatosCita.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P085",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "CRITICAL",
+      "tipo": "CODE_SMELL",
+      "descripcion_es": "(Regla javascript:S4123) Unexpected iterable of non-Promise (non-\"Thenable\") values passed to promise aggregator.",
+      "regla": "javascript:S4123",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 1,
+      "descripcion": "Unexpected iterable of non-Promise (non-\"Thenable\") values passed to promise aggregator.",
+      "archivos_ejemplo": [
+        "src/views/MiCuenta/MisEmpresas.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P086",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S2137) Do not use \"Map\" to declare a variable - use another name.",
+      "regla": "javascript:S2137",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 10,
+      "descripcion": "Do not use \"Map\" to declare a variable - use another name.",
+      "archivos_ejemplo": [
+        "src/views/Tramites/GPM/components/ArcGisMap.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P087",
+      "origen": "sonarqube",
+      "capa": "frontend",
+      "proyecto": "ventanilla-unica",
+      "severidad": "MAJOR",
+      "tipo": "BUG",
+      "descripcion_es": "(Regla javascript:S1764) Correct one of the identical sub-expressions on both sides of operator \"&&\"",
+      "regla": "javascript:S1764",
+      "impacto_seguridad": null,
+      "ocurrencias": 1,
+      "esfuerzo_min_total": 2,
+      "descripcion": "Correct one of the identical sub-expressions on both sides of operator \"&&\"",
+      "archivos_ejemplo": [
+        "src/views/Tramites/components/SkeletosWrappers.jsx"
+      ],
+      "estado": "OPEN"
+    },
+    {
+      "id": "P088",
+      "origen": "ciberseguridad",
+      "capa": "frontend",
+      "proyecto": "Portal público / bundle JS",
+      "severidad": "CRITICO",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "Llaves privadas NetPay (sk_netpay_*) expuestas en texto claro en el bundle. Permiten operar la pasarela: reembolsos y operaciones financieras.",
+      "cwe": "CWE-312/798",
+      "descripcion": "Llaves privadas NetPay (sk_netpay_*) expuestas en texto claro en el bundle. Permiten operar la pasarela: reembolsos y operaciones financieras.",
+      "recomendacion": "Mover llaves al backend via endpoint tokenizador y ROTAR la llave de prod ya expuesta.",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P089",
+      "origen": "ciberseguridad",
+      "capa": "frontend",
+      "proyecto": "Portal público",
+      "severidad": "CRITICO",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "Datos de pago de ciudadanos (folio, monto, teléfono, email, dirección) almacenados sin cifrar en localStorage; exfiltrables vía XSS.",
+      "cwe": "CWE-312/922",
+      "descripcion": "Datos de pago de ciudadanos (folio, monto, teléfono, email, dirección) almacenados sin cifrar en localStorage; exfiltrables vía XSS.",
+      "recomendacion": "Dejar de persistir datos de transacción en el cliente; purgar lo almacenado.",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P090",
+      "origen": "ciberseguridad",
+      "capa": "backend",
+      "proyecto": "Todos los backends",
+      "severidad": "CRITICO",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "Ausencia total de cabeceras de seguridad HTTP (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, etc). Habilita XSS y clickjacking.",
+      "cwe": "CWE-16",
+      "descripcion": "Ausencia total de cabeceras de seguridad HTTP (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, etc). Habilita XSS y clickjacking.",
+      "recomendacion": "Implementar set estándar de cabeceras; HSTS >= 1 año.",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P091",
+      "origen": "ciberseguridad",
+      "capa": "backend",
+      "proyecto": "hacienda/apifuncionarios/reporteador",
+      "severidad": "IMPORTANTE",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "CORS Access-Control-Allow-Origin: * en los tres backends. Sitios maliciosos leen respuestas de la API.",
+      "cwe": "CWE-942",
+      "descripcion": "CORS Access-Control-Allow-Origin: * en los tres backends. Sitios maliciosos leen respuestas de la API.",
+      "recomendacion": "Restringir a lista blanca de orígenes; verificar que ningún endpoint combine wildcard con credenciales.",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P092",
+      "origen": "ciberseguridad",
+      "capa": "backend",
+      "proyecto": "Backend Django (opensir)",
+      "severidad": "IMPORTANTE",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "Mapa completo de endpoints expuesto en el bundle; algunos endpoints responden sin autenticación (/padron, catálogos).",
+      "cwe": "CWE-200",
+      "descripcion": "Mapa completo de endpoints expuesto en el bundle; algunos endpoints responden sin autenticación (/padron, catálogos).",
+      "recomendacion": "Revisar endpoints sin auth; aplicar autenticación donde exponga datos sensibles.",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P093",
+      "origen": "ciberseguridad",
+      "capa": "backend",
+      "proyecto": "reporteador",
+      "severidad": "IMPORTANTE",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "App de reportería interna (ASP.NET) accesible públicamente desde Internet.",
+      "cwe": "CWE-284",
+      "descripcion": "App de reportería interna (ASP.NET) accesible públicamente desde Internet.",
+      "recomendacion": "Restringir por IP/VPN/red interna.",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P094",
+      "origen": "ciberseguridad",
+      "capa": "backend",
+      "proyecto": "Backend Django (opensir)",
+      "severidad": "IMPORTANTE",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "Redirects de la API degradan HTTPS->HTTP; paginación DRF genera URLs http://.",
+      "cwe": "CWE-319",
+      "descripcion": "Redirects de la API degradan HTTPS->HTTP; paginación DRF genera URLs http://.",
+      "recomendacion": "Forzar HTTPS en redirects y paginación (SECURE_SSL_REDIRECT).",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P095",
+      "origen": "ciberseguridad",
+      "capa": "frontend",
+      "proyecto": "Portal público",
+      "severidad": "IMPORTANTE",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "Script de checkout NetPay cargado desde CDN externo sin Subresource Integrity. Riesgo supply-chain.",
+      "cwe": "CWE-829",
+      "descripcion": "Script de checkout NetPay cargado desde CDN externo sin Subresource Integrity. Riesgo supply-chain.",
+      "recomendacion": "Añadir atributo integrity+crossorigin o autohospedar el script versionado.",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P096",
+      "origen": "ciberseguridad",
+      "capa": "frontend",
+      "proyecto": "Portal público",
+      "severidad": "IMPORTANTE",
+      "tipo": "VULNERABILITY",
+      "descripcion_es": "Dos tokens Mapbox sin restricción de dominio hardcodeados; consumo de cuota y cargos económicos.",
+      "cwe": "CWE-312",
+      "descripcion": "Dos tokens Mapbox sin restricción de dominio hardcodeados; consumo de cuota y cargos económicos.",
+      "recomendacion": "Rotar tokens y aplicar URL restrictions por dominio.",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P097",
+      "origen": "lighthouse",
+      "capa": "frontend",
+      "proyecto": "Portal público (móvil)",
+      "severidad": "CRITICO",
+      "tipo": "PERFORMANCE",
+      "descripcion_es": "Recursos que bloquean el renderizado: ahorro estimado ~7220 ms en móvil.",
+      "descripcion": "Recursos que bloquean el renderizado: ahorro estimado ~7220 ms en móvil.",
+      "recomendacion": "Diferir/inline de CSS y JS crítico fuera de la ruta crítica.",
+      "metrica": "7220ms",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P098",
+      "origen": "lighthouse",
+      "capa": "frontend",
+      "proyecto": "Portal público",
+      "severidad": "CRITICO",
+      "tipo": "PERFORMANCE",
+      "descripcion_es": "Imágenes sin optimizar: ahorro estimado ~4383 KiB (móvil) / ~4435 KiB (escritorio). Mayor palanca.",
+      "descripcion": "Imágenes sin optimizar: ahorro estimado ~4383 KiB (móvil) / ~4435 KiB (escritorio). Mayor palanca.",
+      "recomendacion": "Formatos modernos (WebP/AVIF), compresión y dimensiones explícitas.",
+      "metrica": "4383KiB",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P099",
+      "origen": "lighthouse",
+      "capa": "frontend",
+      "proyecto": "Portal público",
+      "severidad": "IMPORTANTE",
+      "tipo": "PERFORMANCE",
+      "descripcion_es": "JavaScript sin usar: 998 KiB / ~3550 ms en móvil. Mismo bundle que expone secretos.",
+      "descripcion": "JavaScript sin usar: 998 KiB / ~3550 ms en móvil. Mismo bundle que expone secretos.",
+      "recomendacion": "Code-splitting y carga diferida de chunks.",
+      "metrica": "998KiB",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P100",
+      "origen": "lighthouse",
+      "capa": "frontend",
+      "proyecto": "Portal público (origen)",
+      "severidad": "IMPORTANTE",
+      "tipo": "PERFORMANCE",
+      "descripcion_es": "CLS alto (0.24 móvil / 0.17 escritorio en el origen): saltos de diseño molestos.",
+      "descripcion": "CLS alto (0.24 móvil / 0.17 escritorio en el origen): saltos de diseño molestos.",
+      "recomendacion": "Definir width/height en imágenes; reservar espacio para el modal de descuentos.",
+      "metrica": "CLS 0.24",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P101",
+      "origen": "lighthouse",
+      "capa": "frontend",
+      "proyecto": "Portal público",
+      "severidad": "IMPORTANTE",
+      "tipo": "PERFORMANCE",
+      "descripcion_es": "Payload total excesivo: 6180 KiB.",
+      "descripcion": "Payload total excesivo: 6180 KiB.",
+      "recomendacion": "Reducir tamaño total de la carga de red.",
+      "metrica": "6180KiB",
+      "estado": "OPEN"
+    },
+    {
+      "id": "P102",
+      "origen": "lighthouse",
+      "capa": "frontend",
+      "proyecto": "Portal público",
+      "severidad": "MENOR",
+      "tipo": "PERFORMANCE",
+      "descripcion_es": "Caché ineficiente (123 KiB) y CSS sin usar (101 KiB).",
+      "descripcion": "Caché ineficiente (123 KiB) y CSS sin usar (101 KiB).",
+      "recomendacion": "Configurar tiempos de vida de caché largos; purgar CSS no usado.",
+      "metrica": "224KiB",
+      "estado": "OPEN"
+    }
+  ],
+  "resumen": {
+    "total_grupos_problemas": 102,
+    "por_origen": {
+      "sonarqube": 87,
+      "ciberseguridad": 9,
+      "lighthouse": 6
+    },
+    "por_severidad": {
+      "CRITICAL": 32,
+      "MAJOR": 37,
+      "MINOR": 7,
+      "BLOCKER": 11,
+      "CRITICO": 5,
+      "IMPORTANTE": 9,
+      "MENOR": 1
+    },
+    "por_capa": {
+      "frontend": 61,
+      "backend": 41
+    }
+  }
+}

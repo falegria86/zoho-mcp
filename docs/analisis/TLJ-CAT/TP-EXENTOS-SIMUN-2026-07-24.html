@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Análisis TLJ-CAT — TP exentos $0.00 · Solicitud SIMUN</title>
+<style>
+  :root{
+    --slate:#3C4E5D; --slate-dark:#2C3A46; --gold:#C7B383; --gold-soft:#EFE8D6;
+    --ink:#22303a; --muted:#6b7a85; --line:#dfe4e8; --bg-soft:#f6f8f9;
+    --ok:#2f855a; --ok-bg:#e6f4ec; --warn:#b7791f; --warn-bg:#fbf3e2; --crit:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);font-size:12px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page{padding:0 34px;}
+
+  /* Portada */
+  .cover{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;background:linear-gradient(160deg,#fdfdfc 0%,var(--gold-soft) 100%);
+    page-break-after:always;padding:40px;}
+  .cover img{width:280px;max-width:70%;margin-bottom:40px;}
+  .cover .kicker{letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;font-size:13px;margin-bottom:10px;}
+  .cover h1{color:var(--slate);font-size:30px;margin:0 0 8px;font-weight:800;line-height:1.15;max-width:760px;}
+  .cover h2{color:var(--muted);font-size:15px;font-weight:500;margin:0 0 30px;max-width:640px;}
+  .cover .meta{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 28px;
+    display:grid;grid-template-columns:auto auto;gap:8px 32px;text-align:left;box-shadow:0 6px 24px rgba(60,78,93,.08);}
+  .cover .meta div{font-size:12.5px;}
+  .cover .meta b{color:var(--slate);}
+  .cover .to{margin-top:18px;background:var(--slate);color:#fff;padding:8px 22px;border-radius:8px;font-size:14px;font-weight:700;letter-spacing:.5px;}
+  .cover .badge{margin-top:14px;background:var(--warn-bg);color:var(--warn);padding:8px 18px;border-radius:30px;font-weight:700;font-size:12.5px;}
+
+  h2.section{color:var(--slate);font-size:18px;border-bottom:3px solid var(--gold);padding-bottom:6px;margin:28px 0 14px;}
+  h3.item{color:var(--slate-dark);font-size:13.5px;margin:20px 0 6px;padding-left:10px;border-left:4px solid var(--gold);}
+  p{margin:6px 0;}
+
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:10.5px;}
+  th{background:var(--slate);color:#fff;text-align:left;padding:7px 9px;font-weight:600;}
+  td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  table.summary td:first-child{text-align:center;font-weight:700;color:var(--slate);width:22px;}
+
+  .chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+  .chip.ok{background:var(--ok-bg);color:var(--ok);}
+  .chip.warn{background:var(--warn-bg);color:var(--warn);}
+  .chip.crit{background:#fbe6e3;color:var(--crit);}
+  .chip.type{background:#e8eef2;color:var(--slate);}
+
+  .card{border:1px solid var(--line);border-radius:10px;padding:2px 16px 12px;margin-bottom:6px;background:#fff;page-break-inside:avoid;}
+  .metaline{font-size:10.5px;color:var(--muted);margin:2px 0 8px;}
+  .metaline b{color:var(--slate-dark);}
+  ul{margin:6px 0;padding-left:18px;}
+  li{margin:2px 0;}
+  code{background:#eef2f4;padding:1px 5px;border-radius:4px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:var(--slate-dark);}
+
+  .callout{border-radius:8px;padding:10px 14px;margin:10px 0;font-size:11px;}
+  .callout.warn{background:var(--warn-bg);border-left:4px solid var(--warn);}
+  .callout.info{background:#eaf1f6;border-left:4px solid var(--slate);}
+  .callout.crit{background:#fbe6e3;border-left:4px solid var(--crit);}
+
+  figure{margin:12px 0;page-break-inside:avoid;}
+  figure img{width:100%;max-width:100%;border:1px solid var(--line);border-radius:8px;box-shadow:0 3px 12px rgba(60,78,93,.10);}
+  figcaption{font-size:10px;color:var(--muted);margin-top:5px;text-align:center;}
+  .endpoint{background:var(--slate-dark);color:#fff;border-radius:6px;padding:6px 10px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10px;margin:8px 0 4px;word-break:break-all;}
+  .endpoint .verb{background:var(--gold);color:var(--slate-dark);padding:1px 7px;border-radius:4px;font-weight:700;margin-right:8px;}
+
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:5px 0 5px 26px;position:relative;border-bottom:1px dashed var(--line);}
+  .checklist li:before{content:"\2610";position:absolute;left:4px;color:var(--gold);font-size:14px;top:3px;}
+
+  .foot{margin-top:26px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:10px;text-align:center;}
+  .avoid{page-break-inside:avoid;}
+</style>
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<div class="cover">
+  <img src="../../../assets/sigob-5.png" alt="SiGOB">
+  <div class="kicker">Análisis Técnico · Solicitud de Revisión</div>
+  <h1>Trámites de TP exentos con importe $0.00 que no concluyen el flujo</h1>
+  <h2>Diagnóstico de integración SiGOB/SIR ↔ SIMUN y solicitud formal de revisión</h2>
+  <div class="meta">
+    <div><b>Sistema:</b> SiGOB / SIR</div>
+    <div><b>Proyecto:</b> TLJ-CAT</div>
+    <div><b>Portal:</b> sigobproyectos</div>
+    <div><b>Tarea Zoho:</b> 106599000037735439</div>
+    <div><b>Prioridad:</b> Alta</div>
+    <div><b>Estado:</b> No iniciada</div>
+    <div><b>Reportó:</b> Jorge Iván González</div>
+    <div><b>Responsable:</b> Dulce G. González B.</div>
+    <div><b>Revisión con:</b> Paolo Payán</div>
+    <div><b>Fecha:</b> 2026-07-24</div>
+  </div>
+  <div class="to">Dirigido a: Alejandro Alanis — SIMUN</div>
+  <div class="badge">Requiere revisión de SIMUN</div>
+</div>
+
+<div class="page">
+
+<!-- 1. Resumen -->
+<h2 class="section">1. Resumen ejecutivo</h2>
+<p>En el módulo de <b>Transmisiones Patrimoniales (TP)</b>, cuando un trámite corresponde a un <b>acto exento</b> (importe $0.00), el flujo <b>no concluye</b>: aunque el contribuyente paga la Forma Universal en caja y los recibos se generan correctamente, el trámite <b>permanece detenido</b> porque el sistema <b>no recibe la confirmación</b> necesaria para marcarlo como <b>liquidado</b>.</p>
+<div class="callout info">
+  Toda la evidencia recabada —y la revisión técnica realizada con <b>Paolo Payán</b>— apunta a la <b>integración con SIMUN</b> como el punto donde no se ejecuta el proceso esperado para notificar que un trámite con adeudo $0.00 ha sido saldado. Por ello se solicita formalmente a <b>Alejandro Alanis (SIMUN)</b> la revisión de los puntos de la sección&nbsp;6.
+</div>
+
+<!-- 2. Contexto -->
+<h2 class="section">2. Contexto del módulo</h2>
+<ul>
+  <li>El usuario selecciona la opción <b>"Exenta: SI"</b> en un trámite de TP.</li>
+  <li>El sistema genera el trámite con un <b>importe de $0.00</b> (acto exento).</li>
+  <li>En el paso de <b>Cobro de Transmisión Patrimonial</b>, el usuario selecciona <b>"Generar Cargos"</b> y el cargo se genera correctamente en <b>$0.00</b>.</li>
+</ul>
+
+<!-- 3. Reproducción -->
+<h2 class="section">3. Reproducción del problema</h2>
+<table class="summary">
+  <tr><th>#</th><th>Paso</th><th>Resultado observado</th><th>Evidencia</th></tr>
+  <tr><td>1</td><td>Trámite de TP con <b>"Exenta: SI"</b></td><td>Se genera el trámite con importe <b>$0.00</b></td><td>Captura 1 (Zoho)</td></tr>
+  <tr><td>2</td><td>Cobro de TP → <b>"Generar Cargos"</b></td><td>Cargo generado correctamente en <b>$0.00</b></td><td>Captura 2 (Zoho)</td></tr>
+  <tr><td>3</td><td>Contribuyente paga <b>$240.00</b> (Forma Universal) en caja</td><td>Pago realizado; <b>recibos se generan correctamente</b></td><td>—</td></tr>
+  <tr><td>4</td><td>Se espera que el trámite avance a <b>liquidado</b></td><td><span class="chip crit">Flujo detenido</span> El sistema <b>no recibe la confirmación</b> de liquidación</td><td>Capturas 3 y 4 (Zoho)</td></tr>
+</table>
+<div class="callout info">Las 4 capturas están embebidas en la descripción de la tarea de Zoho <code>106599000037735439</code>. Muestran: (1) el trámite en $0.00, (2) el cargo en $0.00, (3) cómo SIMUN <b>consulta</b> los adeudos y (4) cómo SIMUN los <b>salda</b>.</div>
+
+<!-- 4. Evidencia -->
+<h2 class="section">4. Evidencia recabada</h2>
+<ul>
+  <li>El trámite exento se <b>genera correctamente</b> con importe $0.00.</li>
+  <li>El cargo asociado se <b>genera correctamente</b> en $0.00.</li>
+  <li>El pago de la Forma Universal ($240.00) se <b>procesa</b> y los <b>recibos se generan correctamente</b>.</li>
+  <li>Pese a lo anterior, el trámite <b>no se marca como liquidado</b> y <b>no continúa</b> con su flujo normal.</li>
+  <li>Revisión con Paolo Payán: el problema <b>aparentemente radica en la integración con SIMUN</b>, al no ejecutarse el proceso esperado para <b>notificar que el trámite con adeudo $0.00 ha sido saldado</b>.</li>
+</ul>
+
+<!-- 5. Análisis -->
+<h2 class="section">5. Análisis técnico / diagnóstico</h2>
+<div class="card">
+  <h3 class="item">Hipótesis principal: la falla está en la integración desde SIMUN, no en el SIR</h3>
+  <ul>
+    <li><b>Descarte del SIR:</b> si el problema fuera del SIR, <b>los recibos no podrían generarse correctamente</b>. Dado que los recibos <b>sí se generan</b>, el núcleo recaudatorio de SiGOB/SIR opera conforme a lo esperado.</li>
+    <li><b>Punto de falla observado:</b> la confirmación/notificación de que el trámite con importe $0.00 ha sido <b>saldado</b> no está llegando al SIR para que el trámite avance a liquidado.</li>
+    <li><b>Conclusión:</b> todo apunta a que la <b>integración desde SIMUN no está consumiendo los endpoints conforme al flujo definido</b>, específicamente en el <b>caso borde de importe/adeudo $0.00</b> (actos exentos).</li>
+  </ul>
+</div>
+<div class="callout warn">⚠️ Hipótesis técnica sustentada en la evidencia disponible al 2026-07-24. Las pruebas de la <b>sección 6</b> confirman que los endpoints del SIR responden correctamente con importe $0.00; la confirmación definitiva del lado de SIMUN requiere revisar sus trazas/logs (sección 7).</div>
+
+<!-- 6. Endpoints -->
+<h2 class="section">6. Endpoints del SIR que SIMUN debe consumir (evidencia)</h2>
+<p>Las siguientes pruebas ejecutadas contra la API del SIR (<code>apisir.tlajomulco.gob.mx</code>) demuestran que los endpoints <b>responden correctamente para el caso exento (importe $0.00)</b>. SIMUN debe consumir estos endpoints como parte del flujo de liquidación.</p>
+
+<div class="card">
+  <h3 class="item">6.1 Consulta de adeudo del trámite</h3>
+  <div class="endpoint"><span class="verb">POST</span>https://apisir.tlajomulco.gob.mx/catastro/predio-con-adeudos/adeudos-por-tramite/</div>
+  <p class="metaline"><b>Request:</b> <code>{ "clave_catastral_municipal": "93U335756", "plantilla_de_tramite_id": 1 }</code></p>
+  <p class="metaline"><b>Respuesta:</b> <span class="chip ok">200 OK</span> — el trámite exento devuelve <code>impuesto: 0.0</code>, <code>recargos: 0.0</code>, <code>multa: 0.0</code>, etc. (adeudo total $0.00).</p>
+  <figure>
+    <img src="1784922999644.png" alt="Consulta de adeudo por trámite — respuesta 200 OK con importes en 0.0">
+    <figcaption>Evidencia A — Consulta de adeudo del trámite exento: respuesta 200 OK con importes en $0.00.</figcaption>
+  </figure>
+</div>
+
+<div class="card">
+  <h3 class="item">6.2 Registro de pago del trámite (genera el recibo)</h3>
+  <div class="endpoint"><span class="verb">POST</span>https://apisir.tlajomulco.gob.mx/catastro/pago-tramite/registrar-pago/</div>
+  <p class="metaline"><b>Request:</b> <code>{ "clave_catastral_municipal": "93U335756", "plantilla_de_tramite_id": 1, "metodos_de_pago": [ { "metodo_de_pago_id": 1, "importe": 0 } ] }</code></p>
+  <p class="metaline"><b>Respuesta:</b> <span class="chip ok">200 OK</span> — <code>"success": true</code>, <code>"mensaje": "Pago registrado exitosamente"</code>, recibo <code>folio: R-26-027085</code>, <code>importe_total: 0.0</code>.</p>
+  <figure>
+    <img src="1784923027741.png" alt="Registrar pago de trámite con importe 0 — respuesta 200 OK, pago registrado, recibo generado">
+    <figcaption>Evidencia B — Registro de pago con <code>importe: 0</code>: respuesta 200 OK, pago registrado y recibo generado correctamente.</figcaption>
+  </figure>
+</div>
+
+<div class="callout crit">
+  <b>Conclusión de la evidencia:</b> el endpoint <code>registrar-pago</code> del SIR <b>acepta y procesa correctamente el pago de $0.00</b> y genera el recibo. Por tanto, para que el trámite exento avance a <b>liquidado</b>, <b>SIMUN debe invocar este endpoint (<code>registrar-pago</code>) también cuando el importe es $0.00</b>. Si el flujo queda detenido, la evidencia indica que SIMUN no está consumiendo este endpoint (o lo omite cuando el importe es cero).
+</div>
+
+<!-- 7. Solicitud -->
+<h2 class="section">7. Solicitud formal de revisión a SIMUN</h2>
+<p>Se solicita a <b>Alejandro Alanis (SIMUN)</b> revisar y confirmar los siguientes puntos <span class="chip warn">acciones a cargo de SIMUN</span>:</p>
+<table class="summary">
+  <tr><th>#</th><th>Punto a verificar</th></tr>
+  <tr><td>1</td><td>⚠️ Confirmar que SIMUN <b>invoca el endpoint <code>POST /catastro/pago-tramite/registrar-pago/</code></b> también cuando el importe del trámite es <b>$0.00</b> (actos exentos).</td></tr>
+  <tr><td>2</td><td>⚠️ Revisar el <b>manejo del caso borde importe $0.00</b>: verificar si la lógica de SIMUN <b>condiciona la llamada a <code>registrar-pago</code></b> a que el importe/adeudo sea mayor a cero.</td></tr>
+  <tr><td>3</td><td>⚠️ Confirmar que, tras el <b>pago de la Forma Universal ($240.00)</b>, SIMUN dispara la secuencia <code>adeudos-por-tramite</code> → <code>registrar-pago</code> conforme al flujo definido.</td></tr>
+  <tr><td>4</td><td>⚠️ Revisar <b>logs/trazas de SIMUN</b> para el trámite de ejemplo (clave catastral <code>93U335756</code>) y verificar <b>si la llamada a <code>registrar-pago</code> se realizó y con qué respuesta</b>.</td></tr>
+  <tr><td>5</td><td>⚠️ <b>Comparar contra un trámite NO exento</b> (importe &gt; $0.00) que sí concluye, para aislar la diferencia de comportamiento.</td></tr>
+</table>
+
+<!-- 8. Delimitación -->
+<h2 class="section">8. Delimitación de responsabilidad</h2>
+<ul>
+  <li><b>SiGOB/SIR:</b> genera el trámite, genera el cargo y emite los recibos correctamente. El núcleo recaudatorio funciona.</li>
+  <li><b>SIMUN:</b> consume los servicios de SiGOB/SIR. La evidencia indica que la notificación de liquidación para el caso $0.00 no se está ejecutando desde SIMUN.</li>
+  <li>El equipo SiGOB queda disponible para <b>acompañar la revisión</b>, aportar la especificación de los endpoints de liquidación y validar en conjunto una vez SIMUN ajuste su integración.</li>
+</ul>
+
+<!-- 9. Checklist -->
+<h2 class="section">9. Próximos pasos</h2>
+<ul class="checklist">
+  <li>SIMUN (Alejandro Alanis) revisa los puntos 1–5 de la sección 6.</li>
+  <li>SIMUN comparte trazas/logs del trámite de ejemplo.</li>
+  <li>Se identifica si el caso borde $0.00 está contemplado en la integración de SIMUN.</li>
+  <li>SIMUN ajusta la integración para notificar la liquidación en actos exentos.</li>
+  <li>Validación conjunta SiGOB–SIMUN sobre ambiente de pruebas.</li>
+  <li>Cierre del caso en Zoho (106599000037735439).</li>
+</ul>
+
+<div class="foot">
+  Documento generado a partir de la tarea de Zoho 106599000037735439 (proyecto TLJ-CAT) · No se ha modificado ningún dato en Zoho · SiGOB · 2026-07-24
+</div>
+
+</div>
+</body>
+</html>

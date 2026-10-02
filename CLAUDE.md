@@ -13,6 +13,7 @@ npm run setup       # Autenticación OAuth2 inicial — abre el navegador, inici
 npm start           # Inicia el servidor MCP (transporte stdio)
 npm run team-tasks  # Lista tareas abiertas de los miembros del equipo (emails hardcodeados)
 npm run my-mentions # Lista menciones al usuario en comentarios (todos los proyectos o uno específico)
+npm run aprobar-horas # Aprueba las horas pendientes del equipo en un mes y genera el informe (MD + HTML + PDF)
 ```
 
 No hay paso de compilación ni pruebas — el proyecto corre directamente como módulos ES.
@@ -47,6 +48,39 @@ npm run my-mentions -- "sigob-sir-lite" --from=2026-06-01
 
 Variable de entorno opcional: `ZOHO_MY_NAME` — si se define (ej: `"Francisco Gomez"`), amplía la detección de menciones por nombre además de por ID.
 
+**`scripts/aprobar-horas.js`** — `npm run aprobar-horas`
+Aprueba en lote los registros de horas pendientes de un equipo en un mes y genera el informe con marca SIGOB (`.md`, `.html` y `.pdf`).
+
+```bash
+npm run aprobar-horas                                    # mes anterior, equipo del .env
+npm run aprobar-horas -- --month=2026-08                 # un mes específico
+npm run aprobar-horas -- --month=2026-08 --dry-run       # lista lo pendiente sin aprobar nada
+npm run aprobar-horas -- --team="ana@x.com,beto@x.com"   # otro equipo, sin tocar el .env
+npm run aprobar-horas -- --team="ana lopez,beto" --team-name="Equipo Backend"
+npm run aprobar-horas -- --help
+```
+
+El equipo es **configurable**, no está hardcodeado: sale de `ZOHO_APPROVAL_TEAM` en `.env` y `--team` lo sobrescribe. Acepta emails (match exacto) o fragmentos de nombre (todas las palabras deben aparecer). Filtrar por email es más confiable: en el portal los nombres tienen grafías inconsistentes.
+
+Salida: `docs/informes-horas/<YYYY-MM>-<EQUIPO>.{md,html,pdf}` (o la carpeta que indique `--out=DIR`). El PDF necesita `assets/sigob-5.png` para la portada.
+
+## Organización de documentos
+
+Los documentos generados viven en `docs/`, agrupados **por tipo** y dentro **por proyecto**. El índice completo, con convenciones de nombres y el contenido actual, está en **`docs/README.md`** — consúltalo antes de crear un documento nuevo para respetar dónde va y cómo se llama.
+
+```
+docs/liberaciones/<PROYECTO>/<fecha>.{md,html,pdf}
+docs/informes-horas/<YYYY-MM>-<EQUIPO>.{md,html,pdf}
+docs/analisis/<PROYECTO|general>/
+docs/backlogs/<PROYECTO>/
+docs/calidad/<PROYECTO>/
+docs/guias/
+assets/sigob-5.png          logo de portada (los HTML lo referencian relativo)
+work/                       JSON de trabajo, backups, previews — en .gitignore
+```
+
+Regla: **un documento = tres archivos** con el mismo nombre base (`.md` fuente, `.html` maquetado, `.pdf` para compartir), fechas en ISO, y sufijo `Ver.XXXX` solo cuando hay varias versiones del PDF.
+
 ## Autenticación y Configuración
 
 `.env` contiene:
@@ -58,6 +92,9 @@ Variable de entorno opcional: `ZOHO_MY_NAME` — si se define (ej: `"Francisco G
 - `ZOHO_TEAM_NAMES` — fragmentos de nombre separados por comas para detectar miembros por nombre (ej: `jose ramon,tejeda,kevin`)
 - `ZOHO_AUTO_TIMER_PROJECT_ID` — ID numérico del proyecto para el timer automático (`auto-timer.js`)
 - `ZOHO_AUTO_TIMER_TASK_ID` — ID numérico de la tarea objetivo del timer automático
+- `ZOHO_APPROVAL_TEAM` — emails (o fragmentos de nombre) del equipo cuyas horas se aprueban con `aprobar-horas`, separados por comas
+- `ZOHO_APPROVAL_TEAM_NAME` — nombre del equipo que aparece en el informe (ej: `LIDERES Y QA FSW`)
+- `ZOHO_HOURS_PER_WEEK` — jornada de referencia para el informe de horas (default: `45`)
 - `ZOHO_REFRESH_TOKEN` — refresh token OAuth; reemplaza a `tokens.json` en Railway/entornos sin filesystem persistente
 
 `tokens.json` (generado por `npm run setup`) almacena los tokens OAuth activos incluyendo el refresh token. Ambos archivos están en `.gitignore` y son requeridos en tiempo de ejecución.
@@ -157,6 +194,7 @@ La API V3 soporta crear subtareas via `parental_info: { parent_task_id }` en el 
 ### Creación rápida de tareas (`create_task`)
 
 - `project_id` acepta nombre o ID numérico (ej: `"sigob-sir-lite"` o `"123456"`)
+- ⚠️ **`hours` es obligatorio.** Ninguna tarea debe darse de alta sin horas asignadas, en ningún proyecto. Acepta `"6"` o `"06:00"`; rechaza `0` y formatos inválidos. Si no se conoce la estimación, hay que preguntarla antes de crear la tarea, no dejarla en cero.
 - Si no se especifica `person_responsible`, se asigna automáticamente el usuario en `ZOHO_MY_USER_ID`
 - Campos disponibles: `name`, `description`, `priority` (lowercase: `high/medium/low/none`), `start_date`, `due_date` (formato MM-DD-YYYY, se convierte a ISO internamente), `tasklist_id`, `custom_fields`
 - `start_date` es **requerida por la API de Zoho**; si no se proporciona, el servidor usa la fecha de hoy automáticamente
@@ -208,6 +246,23 @@ La función `toHtmlDescription` en `server.js` convierte texto plano a HTML estr
 - Resto de líneas → `<p>texto</p>`
 - Si la descripción ya contiene etiquetas HTML, se pasa sin modificar
 
+### Horas de tareas (`owners_and_work`)
+
+Zoho **acepta** el campo `work: "6:00"` pero lo guarda como `00:00`. La única forma que persiste las horas es:
+
+```json
+"owners_and_work": {
+  "work_type": "standard",
+  "unit": "hours",
+  "total_work": "06:00",
+  "owners": [{ "zpuid": "1065990000...", "work_values": "06:00" }]
+}
+```
+
+Las horas y el propietario viven en el mismo objeto: al cambiar uno hay que reenviar el otro o se borra. `update_task` lo maneja releyendo la tarea antes del `PATCH`. Tras crear, `create_task` reconsulta la tarea y devuelve una advertencia explícita si `total_work` quedó en `00:00`.
+
+Las subtareas se crean por el endpoint V2 (`/restapi/.../subtasks/`), que **no** acepta horas: hay que setearlas con un `PATCH` V3 inmediatamente después de crearlas.
+
 ## API Zoho Projects V3 — Notas de Migración
 
 El proyecto fue migrado de la API V2 (`/restapi/`) a V3 (`/api/v3/`) en junio 2026. El soporte de V2 terminó en diciembre 2025.
@@ -240,6 +295,29 @@ El endpoint de timer cambió completamente:
 - **Stop**: Dos pasos — `GET /timelogs/timers` para obtener el timer ID activo, luego `PATCH /timelogs/timers/{id}/stop`. Zoho descarta automáticamente timers de menos de 30 segundos.
 - **Get running**: `GET /api/v3/portal/{id}/timelogs/timers?type=task`
 - La path `(timesheet|timelogs)` en los docs significa que ambas palabras funcionan; usamos `timelogs`
+
+### Timelogs y aprobación de horas
+
+**Listar:** `GET /api/v3/portal/{id}/timelogs?module={"type":"task"}&start_date=YYYY-MM-DD&per_page=100&page=N`
+
+- `module` va como **JSON** con campo `type`. Valores válidos: **`task`, `issue`, `general`**. Hay que barrer los tres o se pierden horas en silencio (`bug`, `all`, `milestone` dan `PATTERN_NOT_MATCHED`; V3 dice `issue` donde V2 dice `bug`).
+- ⚠️ **`end_date` se ignora**: la API devuelve la **semana ISO (lun–dom) que contiene `start_date`**. Para cubrir un mes hay que consultar el lunes de cada semana involucrada.
+- ⚠️ **`page_info.has_next_page` viene siempre `true`** y `page_count` siempre `100`. El corte real es "esta página ya no aportó ids nuevos" (dedupe por `log.id`).
+- Encadenar cientos de llamadas produce `fetch failed` esporádico: reintentar con backoff.
+
+**Aprobar en lote (V3):** `PATCH /api/v3/portal/{id}/logs` con un **array**:
+
+```json
+[{ "id": "106599000038411887", "module": "task", "approval_status": "Approved" }]
+```
+
+⚠️ `module` va como **string** con el tipo (`"task"` / `"issue"`). Enviarlo como objeto `{id, type}` devuelve `PATTERN_NOT_MATCHED`. `approval_status` acepta `Approved` y `Rejected`.
+
+⚠️ Esta ruta no aparece documentada y `GET /logs` responde `INVALID_METHOD: GET`, lo que hace parecer que no existe. Sí existe, solo que únicamente acepta PATCH.
+
+La operación es reversible: volver a mandar el registro con estado `Rejected`, o aprobarlo de nuevo, no rompe nada.
+
+La operación es reversible: el mismo endpoint con `approval=pending` devuelve el registro a pendiente.
 
 ### Respuesta de proyectos
 

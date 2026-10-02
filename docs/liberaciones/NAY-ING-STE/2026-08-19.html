@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Liberación NAY-ING-STE</title>
+<style>
+  :root{
+    --slate:#3C4E5D;
+    --slate-dark:#2C3A46;
+    --gold:#C7B383;
+    --gold-soft:#EFE8D6;
+    --ink:#22303a;
+    --muted:#6b7a85;
+    --line:#dfe4e8;
+    --bg-soft:#f6f8f9;
+    --ok:#2f855a;
+    --ok-bg:#e6f4ec;
+    --warn:#b7791f;
+    --warn-bg:#fbf3e2;
+    --crit:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    font-size:12px;
+    line-height:1.5;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .page{padding:0 34px;}
+
+  /* ---------- Portada ---------- */
+  .cover{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    background:linear-gradient(160deg,#fdfdfc 0%,var(--gold-soft) 100%);
+    page-break-after:always;
+    padding:40px;
+  }
+  .cover img{width:280px;max-width:70%;margin-bottom:40px;}
+  .cover .kicker{
+    letter-spacing:3px;text-transform:uppercase;color:var(--gold);
+    font-weight:700;font-size:13px;margin-bottom:10px;
+  }
+  .cover h1{
+    color:var(--slate);font-size:34px;margin:0 0 8px;font-weight:800;line-height:1.15;
+  }
+  .cover h2{
+    color:var(--muted);font-size:16px;font-weight:500;margin:0 0 36px;
+  }
+  .cover .meta{
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:20px 28px;display:grid;grid-template-columns:auto auto;gap:8px 32px;
+    text-align:left;box-shadow:0 6px 24px rgba(60,78,93,.08);
+  }
+  .cover .meta div{font-size:12.5px;}
+  .cover .meta b{color:var(--slate);}
+  .cover .version{
+    margin-top:20px;background:var(--slate);color:#fff;padding:8px 22px;border-radius:8px;
+    font-size:15px;font-weight:700;letter-spacing:1px;
+  }
+  .cover .badge{
+    margin-top:16px;background:var(--ok-bg);color:var(--ok);
+    padding:8px 18px;border-radius:30px;font-weight:700;font-size:12.5px;
+  }
+
+  /* ---------- Encabezado de secciones ---------- */
+  h2.section{
+    color:var(--slate);font-size:18px;border-bottom:3px solid var(--gold);
+    padding-bottom:6px;margin:28px 0 14px;
+  }
+  h3.item{
+    color:var(--slate-dark);font-size:13.5px;margin:20px 0 6px;
+    padding-left:10px;border-left:4px solid var(--gold);
+  }
+  p{margin:6px 0;}
+
+  /* ---------- Tablas ---------- */
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:10.5px;}
+  th{background:var(--slate);color:#fff;text-align:left;padding:7px 9px;font-weight:600;}
+  td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  table.summary td:first-child{text-align:center;font-weight:700;color:var(--slate);width:22px;}
+
+  /* ---------- Chips de estado ---------- */
+  .chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+  .chip.ok{background:var(--ok-bg);color:var(--ok);}
+  .chip.warn{background:var(--warn-bg);color:var(--warn);}
+  .chip.crit{background:#fbe6e3;color:var(--crit);}
+  .chip.type{background:#e8eef2;color:var(--slate);}
+
+  /* ---------- Ficha de item ---------- */
+  .card{border:1px solid var(--line);border-radius:10px;padding:2px 16px 12px;margin-bottom:6px;background:#fff;page-break-inside:avoid;}
+  .metaline{font-size:10.5px;color:var(--muted);margin:2px 0 8px;}
+  .metaline b{color:var(--slate-dark);}
+  .reviewer{background:var(--gold-soft);border-radius:6px;padding:4px 10px;font-size:10.5px;display:inline-block;margin:4px 0;}
+  .reviewer b{color:var(--slate-dark);}
+  ul{margin:6px 0;padding-left:18px;}
+  li{margin:2px 0;}
+  code{background:#eef2f4;padding:1px 5px;border-radius:4px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:var(--slate-dark);}
+
+  .callout{border-radius:8px;padding:10px 14px;margin:10px 0;font-size:11px;}
+  .callout.warn{background:var(--warn-bg);border-left:4px solid var(--warn);}
+  .callout.info{background:#eaf1f6;border-left:4px solid var(--slate);}
+
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:5px 0 5px 26px;position:relative;border-bottom:1px dashed var(--line);}
+  .checklist li:before{content:"\2610";position:absolute;left:4px;color:var(--gold);font-size:14px;top:3px;}
+
+  .foot{margin-top:26px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:10px;text-align:center;}
+  .avoid{page-break-inside:avoid;}
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<section class="cover">
+  <img src="../../../assets/sigob-5.png" alt="SIGOB">
+  <div class="kicker">Documento de Liberación de Versión</div>
+  <h1>NAYARIT · Recaudación y Servicios al Contribuyente</h1>
+  <h2>Sistema Integral de Gobierno — SIR / OPENSIR Nayarit</h2>
+  <div class="meta">
+    <div><b>Portal Zoho:</b> sigobproyectos</div>
+    <div><b>Proyecto:</b> NAY-ING-STE (106599000036049465)</div>
+    <div><b>Fecha:</b> 19 de agosto de 2026</div>
+    <div><b>Elementos:</b> 10 tareas de Zoho</div>
+    <div><b>Repos:</b> nay_opensir · nay_ventanilla-unica · nay_OPENSIR-FRONTEND · comp. CFDI</div>
+    <div><b>Validación:</b> Revisor de operaciones</div>
+  </div>
+  <div class="version">Versión: Ver.260819.1326</div>
+  <div class="badge">✓ 10/10 elementos desplegados en producción — 9 en validación, 1 en pruebas con cliente</div>
+</section>
+
+<div class="page">
+
+<div class="callout info">
+  <b>Nota sobre la validación:</b> los elementos de esta liberación <b>no fueron revisados por un equipo de QA</b>. La validación funcional fue realizada por el <b>Revisor de operaciones</b> de cada tarea (campo <i>Revisor de operaciones</i> en Zoho) sobre el ambiente de pruebas (QA). El responsable de la revisión de cada elemento se indica en la tabla resumen y en su ficha.
+</div>
+
+<!-- RESUMEN -->
+<h2 class="section">1. Resumen de elementos</h2>
+<table class="summary">
+  <thead><tr><th>#</th><th>Clave Zoho</th><th>Área</th><th>Título</th><th>Prior.</th><th>Responsable</th><th>Revisor (Operaciones)</th><th>Estado Zoho</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><b>NABO-T102</b></td><td><span class="chip type">BACKEND</span></td><td>Integrar componente de facturación CFDI productivo (PDF generado en backend)</td><td><span class="chip crit">Alta</span></td><td>Montserrat Álvarez</td><td>Jair Guerrero</td><td><span class="chip ok">Validación en producción</span></td></tr>
+    <tr><td>2</td><td><b>NABO-T132</b></td><td><span class="chip type">BACKEND</span></td><td>Error al cobrar trámites de vehículos con transferencia: muestra error, pero realiza el cobro</td><td><span class="chip crit">Alta</span></td><td>Erick Villa</td><td>Cinthia Gallegos</td><td><span class="chip warn">Pruebas con cliente ⚠️</span></td></tr>
+    <tr><td>3</td><td><b>NABO-T190</b></td><td><span class="chip type">BACKEND</span></td><td>Generación de diferentes folios en órdenes de pago</td><td><span class="chip crit">Alta</span></td><td>Arlethe Mora</td><td>Lizbeth Luna</td><td><span class="chip ok">Validación en producción</span></td></tr>
+    <tr><td>4</td><td><b>NABO-T192</b></td><td><span class="chip type">OTROS</span></td><td>Ajuste al momento de la facturación del recibo (importe y redondeo)</td><td><span class="chip warn">Media</span></td><td>Montserrat Álvarez</td><td>Jair Guerrero</td><td><span class="chip ok">Validación en producción</span></td></tr>
+    <tr><td>5</td><td><b>NABO-T212</b></td><td><span class="chip type">FRONTEND</span></td><td>Publicación de banner Permiso de Alcoholes 2026</td><td><span class="chip crit">Alta</span></td><td>Omar Martínez</td><td>Lizbeth Luna</td><td><span class="chip ok">Validación en producción</span></td></tr>
+    <tr><td>6</td><td><b>NABO-T214</b></td><td><span class="chip type">FRONTEND</span></td><td>Reubicar banner de Refrendo Vehicular</td><td><span class="chip crit">Alta</span></td><td>Omar Martínez</td><td>Lizbeth Luna</td><td><span class="chip ok">Validación en producción</span></td></tr>
+    <tr><td>7</td><td><b>NABO-T226</b></td><td><span class="chip type">FRONTEND</span></td><td>Visualización del Reporte Auxiliar Histórico en el Padrón de Remolques</td><td><span class="chip warn">Media</span></td><td>Alejandro León</td><td>Lizbeth Luna</td><td><span class="chip ok">Validación en producción</span></td></tr>
+    <tr><td>8</td><td><b>NABO-T230</b></td><td><span class="chip type">OTROS</span></td><td>Corrección de URL de destino en código QR de recibos</td><td><span class="chip crit">Alta</span></td><td>Montserrat Álvarez</td><td>Lizbeth Luna</td><td><span class="chip ok">Validación en producción</span></td></tr>
+    <tr><td>9</td><td><b>NABO-T232</b></td><td><span class="chip type">BACKEND</span></td><td>Duplicidad de recibos con diferente folio</td><td><span class="chip crit">Alta</span></td><td>Arlethe Mora</td><td>Lizbeth Luna</td><td><span class="chip ok">Validación en producción</span></td></tr>
+    <tr><td>10</td><td><b>NABO-T240</b></td><td><span class="chip type">BACKEND</span></td><td>Ajustar pagos externos: uso de otras cuentas de banco</td><td><span class="chip crit">Alta</span></td><td>Erick Villa</td><td>Jair Guerrero</td><td><span class="chip ok">Validación en producción</span></td></tr>
+  </tbody>
+</table>
+<p class="metaline"><b>Distribución:</b> 5 BACKEND · 3 FRONTEND · 2 OTROS — 8 de prioridad alta, 2 de prioridad media.</p>
+
+<!-- DETALLE -->
+<h2 class="section">2. Detalle por elemento</h2>
+
+<div class="card">
+<h3 class="item">1. NABO-T102 — Integrar componente de facturación CFDI productivo (PDF generado en backend)</h3>
+<div class="metaline"><b>BACKEND</b> · Prioridad alta · Tamaño 5 · Tasklist <i>FASE3. AJUSTES CONTROLADOS</i> · ID <code>106599000037166066</code></div>
+<p><b>Objetivo.</b> Integrar en Nayarit el componente de facturación CFDI ya funcional en Oaxaca y Navojoa, <b>dejando de depender de ElevaCloud</b>, y generar el PDF de la factura <b>desde el backend</b> (no desde el reporteador, que se caía de forma intermitente y podía cortar la operación), respetando el formato propio de Nayarit.</p>
+<p><b>Solución aplicada.</b></p>
+<ul>
+  <li>Nuevo consumo al componente productivo de facturación CFDI de SIGOB.</li>
+  <li>Nueva plantilla de PDF de factura con el formato de Nayarit, generada desde el backend. El ajuste es transparente para el frontend.</li>
+  <li>Mejora en el manejo de errores del backend ante fallos del componente o del timbrado.</li>
+  <li>Fix de validación de configuración por entidad (error <i>"RFC sin configuración asignada"</i> para Nayarit), subido el 18-ago-2026.</li>
+</ul>
+<div class="reviewer"><b>Validación —</b> Jair Guerrero (Revisor de operaciones) validó en pruebas y confirmó el 18-ago-2026 que el tema quedó correcto. Previamente se generaron tres facturas exitosas con importes correctos en padrones sin descuentos ni recargos.</div>
+<p><b>PRs:</b> <code>nay_opensir#86</code> (integración + plantilla PDF) · <code>nay_opensir#96</code> (fix y manejo de errores) · ⚠️ actualización del <b>componente de facturación CFDI</b>.</p>
+<div class="callout warn"><b>Pendiente relacionado, fuera de esta liberación.</b> En padrones con descuentos, recargos o actualizaciones (alcoholes y vehículos) el SAT devuelve <b>CFDI40167</b> (<i>el valor del campo Importe no se encuentra entre el límite inferior y superior permitido</i>), atribuido a un tema de redondeo. Jair Guerrero levantó una subtarea específica para atenderlo.</div>
+</div>
+
+<div class="card">
+<h3 class="item">2. NABO-T132 — Error al cobrar trámites de vehículos con transferencia</h3>
+<div class="metaline"><b>BACKEND</b> · Prioridad alta · Tamaño 3 · Tasklist <i>FASE2. SOPORTE FUNCIONAL</i> · ID <code>106599000037334178</code></div>
+<p><b>Situación reportada.</b> Al cobrar lotes de trámites de vehículos con método de pago <b>Transferencia</b>, Caja mostraba un mensaje de error al finalizar la operación y no desplegaba los recibos, pese a que los cobros sí quedaban registrados y visibles en el módulo de Recibos. Esto generaba incertidumbre en el cajero sobre si debía reintentar el cobro.</p>
+<p><b>Causa raíz.</b> Comportamiento inconsistente en el endpoint <code>/recaudacion/recibos/</code> al generar recibos para múltiples trámites en una misma solicitud. Con un solo trámite el proceso finalizaba bien; con varios, el proceso se ejecuta mediante una <i>task</i> en segundo plano que no alcanzaba a completar todo el flujo: los recibos se generaban, pero los trámites no se actualizaban como pagados.</p>
+<p><b>Solución aplicada.</b> El proceso completo de creación de recibo se encapsuló en un <i>wrapper</i> reutilizable desde la task, y se agregó un método para consultar el estatus de la task (avance de padrones y cargos procesados).</p>
+<div class="reviewer"><b>Validación —</b> Cinthia Gallegos (Revisora de operaciones) validó en pruebas: trámite con <b>48 cargos</b> cobrado correctamente (recibo <code>R-26-00001356</code>, trámite <code>TDRF-14842</code>), cobro en portal con más de 40 cargos, y recibos de 1 y 2 cargos desde Caja para descartar regresiones en el flujo normal.</div>
+<p><b>PR:</b> <code>nay_opensir#99</code>. Desplegado a producción el 18-ago-2026.</p>
+<div class="callout warn"><b>Estado actual.</b> ⚠️ El 19-ago-2026 Cinthia Gallegos movió la tarea a <b>Pruebas con cliente</b> (avance 60%). El cambio está en producción, pero <b>el cliente aún lo está probando y la tarea no ha sido validada ni cerrada</b>. Es el único elemento de esta liberación que no está en <i>Validación en producción</i>.</div>
+<div class="callout info"><b>Nota operativa.</b> El avance de la task ya está disponible por API; <b>queda pendiente exponerlo en el frontend</b> para que el cajero vea el progreso del cobro en lote.</div>
+</div>
+
+<div class="card">
+<h3 class="item">3. NABO-T190 — Generación de diferentes folios en órdenes de pago</h3>
+<div class="metaline"><b>BACKEND</b> · Prioridad alta · Tamaño 3 · Tasklist <i>FASE2. SOPORTE FUNCIONAL</i> · ID <code>106599000037680914</code></div>
+<p><b>Situación reportada.</b> El sistema generaba un folio de orden de pago distinto <b>cada vez que se consultaba el mismo adeudo</b>, sin cambio en la información del padrón ni vencimiento de la vigencia. Evidencia: placa <code>RHK618A</code>, tres consultas el 21-jul-2026 (14:59, 15:12 y 15:17 hrs) generaron los folios <code>26040310610</code>, <code>26040310637</code> y <code>26040310648</code>, con la misma vigencia (31-07-2026) y el mismo importe ($3,101.00). Detectado en los padrones de Vehículo, Motocicleta y Alcohol.</p>
+<p><b>Solución aplicada.</b> Al crear la orden de pago se persiste el dato <code>importe_de_concepto_de_pago</code>; con ese dato y la fecha de vencimiento el sistema verifica si ya existe una orden de pago vigente antes de emitir una nueva. Además se corrigió la evaluación de la fecha de vencimiento.</p>
+<ul>
+  <li><b>Mismo folio si:</b> mismo padrón + mismos cargos + mismo importe + orden vigente.</li>
+  <li><b>Nuevo folio si:</b> orden vencida <b>o</b> datos diferentes.</li>
+</ul>
+<div class="reviewer"><b>Validación —</b> Lizbeth Luna (Revisora de operaciones) validó en pruebas el 27-jul-2026: se genera varias veces la solicitud y se visualiza el mismo folio de orden de pago. Un intento previo fallido el 25-jul se atribuyó a una incidencia de infraestructura (Huawei), no al cambio.</div>
+<p><b>PR:</b> <code>nay_opensir#98</code>. Desplegado a producción el 18-ago-2026.</p>
+</div>
+
+<div class="card">
+<h3 class="item">4. NABO-T192 — Ajuste al momento de la facturación del recibo</h3>
+<div class="metaline"><b>OTROS</b> · Prioridad media · Tamaño 3 · Tasklist <i>FASE3. AJUSTES CONTROLADOS</i> · ID <code>106599000037705719</code></div>
+<p><b>Situación reportada.</b> Error al facturar un recibo en el ambiente de pruebas, detectado durante la validación de la integración del componente de facturación (NABO-T102). Caso: placa <code>PA18695</code>, serie <code>L416255</code>, recibo <code>R-26-00001337</code>.</p>
+<p><b>Solución aplicada.</b></p>
+<ul>
+  <li>Fix al <b>cálculo del importe</b>, origen de las inconsistencias al timbrar.</li>
+  <li>Corrección de un bug previo forzando el importe a dos decimales.</li>
+  <li>Fix de <b>redondeo del total</b>: Nayarit opera sin centavos y todos los montos deben ir redondeados.</li>
+</ul>
+<div class="reviewer"><b>Validación —</b> Jair Guerrero (Revisor de operaciones) validó el 31-jul-2026 que la factura sale con la cantidad total correctamente redondeada.</div>
+<p><b>PRs:</b> <code>nay_opensir#100</code> (importe y decimales) · <code>nay_opensir#106</code> (redondeo). Desplegado a producción el 18-ago-2026.</p>
+</div>
+
+<div class="card">
+<h3 class="item">5. NABO-T212 — Publicación de banner Permiso de Alcoholes 2026</h3>
+<div class="metaline"><b>FRONTEND</b> · Prioridad alta · Tamaño 1 · Tasklist <i>FASE2. SOPORTE FUNCIONAL</i> · ID <code>106599000037757427</code></div>
+<p><b>Requerimiento.</b> Publicar en el portal <code>hacienda.minayarit.gob.mx</code> el banner de la campaña <b>"Regularízate: Permiso de Alcoholes"</b>, con condonaciones vigentes <b>hasta el 30 de septiembre de 2026</b>, visible al ingresar al portal y en conjunto con el banner de Nómina ya existente.</p>
+<p><b>Solución aplicada.</b> El banner se integró en un <b>carrusel</b> que alterna automáticamente entre los banners activos de la página de inicio, en lugar de una ventana emergente independiente. Se incorporó también el tercer banner (Refrendo Vehicular, ver NABO-T214) al mismo carrusel.</p>
+<div class="reviewer"><b>Validación —</b> Lizbeth Luna (Revisora de operaciones) validó en pruebas el 30-jul-2026: los 3 banners solicitados se muestran correctamente en el carrusel.</div>
+<p><b>PR:</b> <code>nay_ventanilla-unica#28</code> (comprende también NABO-T214).</p>
+</div>
+
+<div class="card">
+<h3 class="item">6. NABO-T214 — Reubicar banner de Refrendo Vehicular</h3>
+<div class="metaline"><b>FRONTEND</b> · Prioridad alta · Tamaño 1 · Tasklist <i>FASE2. SOPORTE FUNCIONAL</i> · ID <code>106599000037757446</code></div>
+<p><b>Requerimiento.</b> Mover el banner de <i>Refrendo Vehicular</i> a la página principal del portal, junto con los banners de Alcoholes y Nómina, y <b>retirarlo de las vistas internas</b> de Refrendo Vehicular y Refrendo Motocicleta para evitar duplicidad.</p>
+<p><b>Solución aplicada.</b> El banner se trasladó a la página de inicio e ingresó al carrusel junto con los otros dos.</p>
+<div class="reviewer"><b>Validación —</b> Lizbeth Luna (Revisora de operaciones) validó en pruebas el 30-jul-2026 que los banners ya aparecen en la ubicación solicitada.</div>
+<p><b>PR:</b> <code>nay_ventanilla-unica#28</code> (compartido con NABO-T212).</p>
+</div>
+
+<div class="card">
+<h3 class="item">7. NABO-T226 — Visualización del Reporte Auxiliar Histórico en el Padrón de Remolques</h3>
+<div class="metaline"><b>FRONTEND</b> · Prioridad media · Tamaño 1 · Tasklist <i>FASE2. SOPORTE FUNCIONAL</i> · ID <code>106599000037909272</code></div>
+<p><b>Requerimiento.</b> El <i>Reporte Auxiliar Histórico</i> se visualizaba únicamente en los módulos de <b>Vehículo</b> y <b>Motocicleta</b>. Se solicitó extender la funcionalidad al <b>Padrón de Remolques</b>, replicando la misma lógica, estructura y ubicación de acceso ya implementadas para los otros dos tipos de unidad.</p>
+<p><b>Solución aplicada.</b> Dos cambios en componentes distintos:</p>
+<ul>
+  <li><b>Frontend:</b> se habilitó el acceso al Reporte Auxiliar Histórico desde el Padrón de Remolques, consumiendo el reporte con <code>ID 73</code>.</li>
+  <li><b>Definición del reporte (reporteador / BD):</b> durante la validación se detectó que el reporte sólo devolvía información para algunos remolques. José Navarro identificó que las condiciones de <i>recibos no eliminados</i> y <i>cargos no considerados</i> estaban en el <code>WHERE</code> principal del query, lo que descartaba registros; se movieron a los <code>LEFT JOIN</code> correspondientes y se ajustó la regla de negocio del reporte para que el padrón devuelva la información completa.</li>
+</ul>
+<div class="reviewer"><b>Validación —</b> Lizbeth Luna (Revisora de operaciones) validó en el ambiente de pruebas el 11-ago-2026: el reporte ya se visualiza correctamente en el Padrón de Remolques tras el ajuste del query, y dejó el elemento <b>listo para subir a producción</b>.</div>
+<p><b>PRs / componentes:</b> <code>nay_OPENSIR-FRONTEND#55</code> (frontend) · ajuste a la definición del reporte <code>ID 73</code> (reporteador/BD). ⚠️ <b>Ambos deben aplicarse en producción</b>; el frontend por sí solo no devuelve datos completos.</p>
+<p><b>Despliegue.</b> Frontend y ajuste del reporte <code>ID 73</code> aplicados en producción el <b>19-ago-2026</b>.</p>
+</div>
+
+<div class="card">
+<h3 class="item">8. NABO-T230 — Corrección de URL de destino en código QR de recibos</h3>
+<div class="metaline"><b>OTROS</b> · Prioridad alta · Tamaño 2 · Tasklist <i>FASE2. SOPORTE FUNCIONAL</i> · ID <code>106599000037921120</code></div>
+<p><b>Situación reportada.</b> Al escanear el código QR impreso en los recibos —tanto los actuales como los de años anteriores— el enlace redirigía a <code>https://sir.migob.mx</code>, que es incorrecta.</p>
+<p><b>Solución aplicada.</b> Se corrigió la URL base de generación del código QR para que apunte a <b><code>https://hacienda.minayarit.gob.mx/</code></b>. El fix cubre <b>tanto el recibo como el ticket de 12 mm</b>, donde se detectó el mismo problema.</p>
+<div class="reviewer"><b>Validación —</b> Lizbeth Luna (Revisora de operaciones) validó en pruebas el 13-ago-2026 que el QR de los recibos emitidos redirecciona correctamente.</div>
+<p><b>PR:</b> <code>nay_opensir#109</code>. Desplegado a producción el 18-ago-2026.</p>
+</div>
+
+<div class="card">
+<h3 class="item">9. NABO-T232 — Duplicidad de recibos con diferente folio</h3>
+<div class="metaline"><b>BACKEND</b> · Prioridad alta · Tamaño 4 · Tasklist <i>FASE2. SOPORTE FUNCIONAL</i> · ID <code>106599000037921434</code></div>
+<p><b>Situación reportada.</b> El sistema generaba <b>dos recibos distintos para un mismo pago</b>, con información idéntica (monto, contribuyente, cargos y conceptos) pero folio diferente. Casos documentados los días 3 y 4 de agosto de 2026 (<code>R-26-00491297/99</code>, <code>R-26-00491312/13</code>, <code>R-26-00491351/52</code>, <code>R-26-00491400/01/02</code>, <code>R-26-00492073/74</code>, <code>R-26-00493353/54</code>, entre otros).</p>
+<p><b>Causa raíz.</b> <b>Race condition</b> en la capa de base de datos: no existía control de concurrencia para dos peticiones simultáneas sobre los mismos cargos. Cuando dos requests HTTP llegan al endpoint de generación de recibos con milisegundos de diferencia, cada uno abre su propia transacción y lee los cargos como disponibles (<code>saldado=False</code>); ambos proceden de forma independiente y ambos hacen COMMIT, produciendo dos recibos con folios distintos. Los detonadores posibles son doble clic del cajero, reintento automático de la terminal <b>NetPay</b> al no recibir HTTP 200 dentro de su timeout, o dos ventanillas atendiendo el mismo padrón. El bug estaba latente desde siempre; se materializó esos días por una ventana de colisión más amplia (mayor carga, lentitud de servidor/BD o reintentos de terminal). La condición fue <b>replicada de forma controlada</b> en desarrollo con dos hilos y <code>threading.Barrier</code>.</p>
+<p><b>Solución aplicada.</b> Tres cambios en conjunto, en ambos endpoints afectados (<code>/recibos/</code> de caja y <code>/recibos-netpay/</code>):</p>
+<ul>
+  <li><b><code>select_for_update()</code></b> sobre los cargos: adquiere lock de fila en PostgreSQL al leerlos; la segunda transacción queda bloqueada hasta el COMMIT de la primera y al reanudar re-lee los datos ya actualizados.</li>
+  <li><b>Verificación post-lock:</b> compara los cargos solicitados contra los encontrados disponibles y, si hay diferencia, aborta con <i>"Los cargos ya fueron saldados o cancelados en otra operación."</i> antes de crear cualquier registro.</li>
+  <li><b><code>@transaction.atomic</code></b> en el endpoint NetPay, para que los locks se mantengan durante toda la operación hasta el COMMIT final.</li>
+</ul>
+<p>Ante colisión, <code>@transaction.atomic</code> revierte todas las escrituras (incluida <code>OperacionDePago</code>) y la excepción se maneja en <code>ReciboNetPayView</code>, que crea un <code>RegistroDeErrorNetPay</code> y devuelve <b>HTTP 200</b> a la terminal —preservando el requisito de respuesta positiva de NetPay sin dejar registros huérfanos en la BD.</p>
+<div class="reviewer"><b>Validación —</b> Lizbeth Luna (Revisora de operaciones) validó en pruebas el 13-ago-2026 <b>replicando el error</b>, confirmando que ya no se emiten dos recibos con los mismos datos y folios distintos.</div>
+<p><b>PR:</b> <code>nay_opensir#110</code>. Desplegado a producción el 18-ago-2026.</p>
+</div>
+
+<div class="card">
+<h3 class="item">10. NABO-T240 — Ajustar pagos externos: uso de otras cuentas de banco</h3>
+<div class="metaline"><b>BACKEND</b> · Prioridad alta · Tamaño 2 · Tasklist <i>FASE3. AJUSTES CONTROLADOS</i> · ID <code>106599000037991234</code></div>
+<p><b>Situación reportada.</b> Se estaban usando otras cuentas de banco al procesar archivos en el módulo de <b>pagos externos</b>. Requerimiento derivado de reunión con los involucrados.</p>
+<p><b>Solución aplicada.</b> Se investigó la causa sin encontrar un mecanismo que explicara el comportamiento observado. Como medida, se agregó un <b>log del cambio de tipo de referencia</b>, para localizar en base de datos el movimiento realizado, confirmar si es correcto y evaluar un ajuste de configuración. El cambio es <b>de carácter informativo/diagnóstico</b>, no correctivo.</p>
+<div class="reviewer"><b>Validación —</b> Jair Guerrero (Revisor de operaciones) confirmó en pruebas el carácter informativo del cambio y solicitó el paso a producción para iniciar la corrección de multipagos del mes de julio.</div>
+<p><b>PR:</b> <code>nay_opensir#111</code>. Desplegado a producción el 18-ago-2026.</p>
+<div class="callout warn">⚠️ La causa raíz del uso de cuentas incorrectas <b>sigue abierta</b>; este cambio sólo habilita su diagnóstico.</div>
+</div>
+
+<!-- DESPLIEGUE -->
+<h2 class="section">3. Consideraciones de despliegue</h2>
+
+<h3 class="item">3.1 Pull Requests</h3>
+<table>
+  <thead><tr><th>PR</th><th>Repositorio</th><th>Elemento</th><th>Descripción</th></tr></thead>
+  <tbody>
+    <tr><td>#86</td><td>nay_opensir</td><td>NABO-T102</td><td>Consumo del componente de facturación CFDI + plantilla de PDF</td></tr>
+    <tr><td>#96</td><td>nay_opensir</td><td>NABO-T102</td><td>Fix de integración y manejo de errores</td></tr>
+    <tr><td>#98</td><td>nay_opensir</td><td>NABO-T190</td><td>Reutilización de folio de orden de pago vigente ⚠️</td></tr>
+    <tr><td>#99</td><td>nay_opensir</td><td>NABO-T132</td><td>Wrapper de creación de recibo + estatus de task</td></tr>
+    <tr><td>#100</td><td>nay_opensir</td><td>NABO-T192</td><td>Fix de cálculo de importe y forzado a dos decimales</td></tr>
+    <tr><td>#106</td><td>nay_opensir</td><td>NABO-T192</td><td>Fix de redondeo del total (Nayarit sin centavos)</td></tr>
+    <tr><td>#109</td><td>nay_opensir</td><td>NABO-T230</td><td>URL correcta del QR en recibo y ticket de 12 mm</td></tr>
+    <tr><td>#110</td><td>nay_opensir</td><td>NABO-T232</td><td><code>select_for_update</code> + verificación post-lock + <code>transaction.atomic</code></td></tr>
+    <tr><td>#111</td><td>nay_opensir</td><td>NABO-T240</td><td>Log de cambio de tipo de referencia (diagnóstico)</td></tr>
+    <tr><td>#28</td><td>nay_ventanilla-unica</td><td>NABO-T212 · T214</td><td>Carrusel de banners en página de inicio</td></tr>
+    <tr><td>#55</td><td>nay_OPENSIR-FRONTEND</td><td>NABO-T226</td><td>Reporte Auxiliar Histórico en el Padrón de Remolques ⚠️</td></tr>
+    <tr><td>—</td><td>Reporteador / BD</td><td>NABO-T226</td><td>Ajuste del query y la regla de negocio del reporte <code>ID 73</code> ⚠️</td></tr>
+    <tr><td>—</td><td>Componente CFDI (SIGOB)</td><td>NABO-T102</td><td>Fix de validación de configuración por entidad</td></tr>
+  </tbody>
+</table>
+
+<h3 class="item">3.2 Cambios de esquema y datos</h3>
+<div class="callout warn">
+<ul>
+  <li><b><code>nay_opensir#98</code> (NABO-T190):</b> la solución persiste el campo <code>importe_de_concepto_de_pago</code> en la orden de pago. <b>Verificar con desarrollo si el PR incluye migración de esquema</b> antes del despliegue; si la incluye, ejecutarla en la ventana de mantenimiento. <i>(Dato no confirmado en los comentarios de Zoho.)</i></li>
+  <li><b><code>nay_opensir#110</code> (NABO-T232):</b> no altera el esquema, pero introduce <b>locks de fila en PostgreSQL</b> (<code>SELECT FOR UPDATE</code>) en los endpoints de recibos. Verificar que los timeouts de transacción y el pool de conexiones toleren la espera bajo concurrencia en hora pico.</li>
+  <li><b>NABO-T102:</b> requiere <b>configuración en base de datos</b> para apuntar al componente productivo de CFDI (Oaxaca/Navojoa) en lugar de ElevaCloud.</li>
+  <li><b>NABO-T226:</b> requiere aplicar en producción la <b>nueva definición del reporte <code>ID 73</code></b> (query y regla de negocio). Sin ese ajuste el reporte se muestra pero devuelve información incompleta para la mayoría de los remolques.</li>
+</ul>
+</div>
+
+<h3 class="item">3.3 Coordinación con terceros</h3>
+<div class="callout warn">
+<ul>
+  <li><b>Componente de facturación CFDI (SIGOB):</b> el despliegue de NABO-T102 requiere actualizar <b>el componente y el backend de manera coordinada</b> (Montserrat Álvarez + Paolo Payán, acordado para después de las 17:00 hrs). En producción se cargan los valores reales de la entidad y el timbrado va <b>directo al SAT</b>; en pruebas se usan CSD del entorno de pruebas del SAT, motivo por el cual las facturas de QA muestran datos de una entidad ficticia ("la escuela"). <b>Verificar en producción que la factura salga con el escudo y los datos de Nayarit.</b></li>
+  <li><b>Terminales NetPay (NABO-T232):</b> el endpoint conserva la respuesta HTTP 200 por requisito de la terminal aun cuando la operación se aborte por colisión. Los fallos quedan en <code>RegistroDeErrorNetPay</code>; <b>habilitar monitoreo de esa tabla</b> durante los primeros días.</li>
+  <li><b>Portal público Ventanilla Única (NABO-T212, T214):</b> los cambios son visibles al ciudadano en <code>hacienda.minayarit.gob.mx</code>.</li>
+</ul>
+</div>
+
+<h3 class="item">3.4 Acciones operativas</h3>
+<table>
+  <thead><tr><th>Acción</th><th>Responsable sugerido</th><th>Momento</th></tr></thead>
+  <tbody>
+    <tr><td>Confirmar con desarrollo si <code>nay_opensir#98</code> incluye migración</td><td>Paolo Payán</td><td>Antes del despliegue</td></tr>
+    <tr><td>Actualizar componente CFDI y backend de forma coordinada</td><td>Montserrat Álvarez / Paolo Payán</td><td>Ventana posterior a 17:00 hrs</td></tr>
+    <tr><td>Configurar en BD el apuntador al componente productivo de CFDI</td><td>Desarrollo / Infraestructura</td><td>Durante el despliegue</td></tr>
+    <tr><td>Validar en producción que la factura muestre escudo y datos de Nayarit</td><td>Jair Guerrero</td><td>Post-despliegue</td></tr>
+    <tr><td>Validar en producción el Reporte Auxiliar Histórico en el Padrón de Remolques</td><td>Lizbeth Luna</td><td>Post-despliegue</td></tr>
+    <tr><td>Monitorear <code>RegistroDeErrorNetPay</code> por colisiones abortadas</td><td>Desarrollo</td><td>Primeros 5 días</td></tr>
+    <tr><td><b>Retirar el banner de Permiso de Alcoholes al vencer la campaña</b></td><td>Operaciones (Lizbeth Luna)</td><td><b>30-sep-2026</b></td></tr>
+  </tbody>
+</table>
+
+<h3 class="item">3.5 Alcance y limitaciones</h3>
+<div class="callout info">
+<ul>
+  <li><b>NABO-T230:</b> la corrección aplica únicamente a los recibos y tickets <b>generados a partir del despliegue</b>. Los documentos ya impresos conservan el QR con la URL anterior.</li>
+  <li><b>NABO-T240:</b> el cambio es de diagnóstico; <b>no corrige</b> el uso de cuentas de banco incorrectas en pagos externos.</li>
+  <li><b>NABO-T132:</b> el avance de la task de cobro en lote está disponible por API pero <b>aún no se expone en el frontend</b>.</li>
+  <li>⚠️ <b>NABO-T132 está en <i>Pruebas con cliente</i></b>, no en <i>Validación en producción</i>: el despliegue se hizo pero la validación del cliente sigue en curso. <b>No darla por cerrada hasta que Cinthia Gallegos confirme.</b></li>
+  <li><b>NABO-T102:</b> el error <b>CFDI40167</b> en padrones con descuentos, recargos o actualizaciones (alcoholes y vehículos) <b>queda fuera de esta liberación</b> y se atiende en una subtarea independiente.</li>
+</ul>
+</div>
+
+<!-- CHECKLIST -->
+<h2 class="section">4. Checklist de liberación</h2>
+<ul class="checklist">
+  <li>Confirmar si <code>nay_opensir#98</code> incluye migración de esquema y, en su caso, ejecutarla</li>
+  <li>Respaldo de base de datos previo al despliegue</li>
+  <li>Desplegar <code>nay_opensir</code> (#86, #96, #98, #99, #100, #106, #109, #110, #111)</li>
+  <li>Desplegar <code>nay_ventanilla-unica</code> (#28)</li>
+  <li>Actualizar el componente de facturación CFDI de forma coordinada con el backend</li>
+  <li>Configurar el apuntador de BD al componente productivo de CFDI</li>
+  <li>Consultar el Reporte Auxiliar Histórico en producción con varios remolques y confirmar que devuelve datos (NABO-T226)</li>
+  <li>Verificar carrusel de 3 banners en la página de inicio del portal (NABO-T212, T214)</li>
+  <li>Cobro de lote de trámites vehiculares con Transferencia en producción (NABO-T132)</li>
+  <li>Consulta repetida de un mismo adeudo: confirmar folio único de orden de pago (NABO-T190)</li>
+  <li>Escaneo de QR de recibo y de ticket de 12 mm en producción (NABO-T230)</li>
+  <li>Verificar que no se generen recibos duplicados bajo cobro concurrente (NABO-T232)</li>
+  <li>Timbrar factura en producción y verificar escudo, datos de Nayarit y redondeo sin centavos (NABO-T102, T192)</li>
+  <li>Habilitar monitoreo de <code>RegistroDeErrorNetPay</code></li>
+  <li>Agendar el retiro del banner de Alcoholes para el 30-sep-2026</li>
+  <li>Dar seguimiento a NABO-T132 hasta que el cliente concluya sus pruebas</li>
+  <li>Actualizar el estatus de las 10 tareas en Zoho a <b>CERRADO</b> una vez validadas en producción por el Revisor de operaciones</li>
+</ul>
+
+<div class="foot">
+  Documento generado el 19 de agosto de 2026 · Versión <b>Ver.260819.1326</b> · Proyecto NAY-ING-STE — Portal Zoho <b>sigobproyectos</b><br>
+  Fuente: descripción, comentarios y campos de cada tarea de Zoho Projects al momento de la extracción.
+</div>
+
+</div>
+</body>
+</html>

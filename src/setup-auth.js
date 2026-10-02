@@ -21,6 +21,8 @@ const SCOPES = [
   "ZohoProjects.portals.READ",
   "ZohoProjects.projects.ALL",
   "ZohoProjects.tasks.ALL",
+  "ZohoProjects.milestones.ALL",
+  "ZohoProjects.bugs.ALL",
   "ZohoProjects.timesheets.ALL",
   "ZohoProjects.users.READ",
 ].join(",");

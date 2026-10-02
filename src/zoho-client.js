@@ -62,7 +62,8 @@ class ZohoClient {
       options.body = JSON.stringify(body);
     }
 
-    const url = path.startsWith("/api/")
+    // /api/ y /restapi/ (V2) cuelgan de la raíz; el resto se prefija con la base V3.
+    const url = /^\/(api|restapi)\//.test(path)
       ? `https://projectsapi.zoho.com${path}`
       : `${BASE_URL}${path}`;
     let res = await fetch(url, options);

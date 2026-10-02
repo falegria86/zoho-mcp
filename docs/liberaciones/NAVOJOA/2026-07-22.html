@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Liberación NAVOJOA</title>
+<style>
+  :root{
+    --slate:#3C4E5D;
+    --slate-dark:#2C3A46;
+    --gold:#C7B383;
+    --gold-soft:#EFE8D6;
+    --ink:#22303a;
+    --muted:#6b7a85;
+    --line:#dfe4e8;
+    --bg-soft:#f6f8f9;
+    --ok:#2f855a;
+    --ok-bg:#e6f4ec;
+    --warn:#b7791f;
+    --warn-bg:#fbf3e2;
+    --crit:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    font-size:12px;
+    line-height:1.5;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .page{padding:0 34px;}
+
+  /* ---------- Portada ---------- */
+  .cover{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    background:linear-gradient(160deg,#fdfdfc 0%,var(--gold-soft) 100%);
+    page-break-after:always;
+    padding:40px;
+  }
+  .cover img{width:280px;max-width:70%;margin-bottom:40px;}
+  .cover .kicker{
+    letter-spacing:3px;text-transform:uppercase;color:var(--gold);
+    font-weight:700;font-size:13px;margin-bottom:10px;
+  }
+  .cover h1{
+    color:var(--slate);font-size:34px;margin:0 0 8px;font-weight:800;line-height:1.15;
+  }
+  .cover h2{
+    color:var(--muted);font-size:16px;font-weight:500;margin:0 0 36px;
+  }
+  .cover .meta{
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:20px 28px;display:grid;grid-template-columns:auto auto;gap:8px 32px;
+    text-align:left;box-shadow:0 6px 24px rgba(60,78,93,.08);
+  }
+  .cover .meta div{font-size:12.5px;}
+  .cover .meta b{color:var(--slate);}
+  .cover .version{
+    margin-top:20px;background:var(--slate);color:#fff;padding:8px 22px;border-radius:8px;
+    font-size:15px;font-weight:700;letter-spacing:1px;
+  }
+  .cover .badge{
+    margin-top:16px;background:var(--ok-bg);color:var(--ok);
+    padding:8px 18px;border-radius:30px;font-weight:700;font-size:12.5px;
+  }
+
+  /* ---------- Encabezado de secciones ---------- */
+  h2.section{
+    color:var(--slate);font-size:18px;border-bottom:3px solid var(--gold);
+    padding-bottom:6px;margin:28px 0 14px;
+  }
+  h3.item{
+    color:var(--slate-dark);font-size:13.5px;margin:20px 0 6px;
+    padding-left:10px;border-left:4px solid var(--gold);
+  }
+  p{margin:6px 0;}
+
+  /* ---------- Tablas ---------- */
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:10.5px;}
+  th{background:var(--slate);color:#fff;text-align:left;padding:7px 9px;font-weight:600;}
+  td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:var(--bg-soft);}
+  table.summary td:first-child{text-align:center;font-weight:700;color:var(--slate);width:22px;}
+
+  /* ---------- Chips de estado ---------- */
+  .chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+  .chip.ok{background:var(--ok-bg);color:var(--ok);}
+  .chip.warn{background:var(--warn-bg);color:var(--warn);}
+  .chip.crit{background:#fbe6e3;color:var(--crit);}
+  .chip.type{background:#e8eef2;color:var(--slate);}
+
+  /* ---------- Ficha de item ---------- */
+  .card{border:1px solid var(--line);border-radius:10px;padding:2px 16px 12px;margin-bottom:6px;background:#fff;page-break-inside:avoid;}
+  .metaline{font-size:10.5px;color:var(--muted);margin:2px 0 8px;}
+  .metaline b{color:var(--slate-dark);}
+  .reviewer{background:var(--gold-soft);border-radius:6px;padding:4px 10px;font-size:10.5px;display:inline-block;margin:4px 0;}
+  .reviewer b{color:var(--slate-dark);}
+  ul{margin:6px 0;padding-left:18px;}
+  li{margin:2px 0;}
+  code{background:#eef2f4;padding:1px 5px;border-radius:4px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:var(--slate-dark);}
+
+  .callout{border-radius:8px;padding:10px 14px;margin:10px 0;font-size:11px;}
+  .callout.warn{background:var(--warn-bg);border-left:4px solid var(--warn);}
+  .callout.info{background:#eaf1f6;border-left:4px solid var(--slate);}
+
+  .checklist{list-style:none;padding-left:0;}
+  .checklist li{padding:5px 0 5px 26px;position:relative;border-bottom:1px dashed var(--line);}
+  .checklist li:before{content:"\2610";position:absolute;left:4px;color:var(--gold);font-size:14px;top:3px;}
+
+  .foot{margin-top:26px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:10px;text-align:center;}
+  .avoid{page-break-inside:avoid;}
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<section class="cover">
+  <img src="../../../assets/sigob-5.png" alt="SIGOB">
+  <div class="kicker">Documento de Liberación de Versión</div>
+  <h1>NAVOJOA · Catastro y Recaudación</h1>
+  <h2>Sistema Integral de Gobierno — Módulo SIR / OPENSIR</h2>
+  <div class="meta">
+    <div><b>Portal Zoho:</b> sigobproyectos</div>
+    <div><b>Proyecto:</b> 106599000028329578</div>
+    <div><b>Fecha:</b> 22 de julio de 2026</div>
+    <div><b>Elementos:</b> 5 Zoho + 1 de plataforma</div>
+    <div><b>Repos:</b> opensir · OPENSIR-FRONTEND</div>
+    <div><b>Validación:</b> Revisor de operaciones</div>
+  </div>
+  <div class="version">Versión: Ver.260723.0531</div>
+  <div class="badge">✓ 5/5 elementos revisados y validados por Operaciones — Listos para producción</div>
+</section>
+
+<div class="page">
+
+<div class="callout info">
+  <b>Nota sobre la validación:</b> los elementos de esta liberación <b>no fueron revisados por un equipo de QA</b>. La validación funcional fue realizada por el <b>Revisor de operaciones</b> de cada tarea/issue (campo <i>Revisor de operaciones</i> en Zoho) sobre el ambiente de pruebas (QA). El responsable de la revisión de cada elemento se indica en la tabla resumen y en su ficha.
+</div>
+
+<!-- RESUMEN -->
+<h2 class="section">1. Resumen de elementos</h2>
+<table class="summary">
+  <thead><tr><th>#</th><th>Clave / ID Zoho</th><th>Tipo</th><th>Título</th><th>Sev./Prior.</th><th>Revisor (Operaciones)</th><th>Estado</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>NA7-T643<br><code>…36858251</code></td><td><span class="chip type">Tarea</span></td><td>Ajustar ventana de catastro: filtrado de predios activos (frontend)</td><td>Media</td><td>Victor Manuel Prieto Mercado</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>2</td><td>NA7-T650<br><code>…36969219</code></td><td><span class="chip type">Tarea</span></td><td>Endpoint <code>/catastro/predios/</code> filtro <code>estados_globales_filter</code> (backend)</td><td>Media</td><td>Victor Manuel Prieto Mercado</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>3</td><td>NA7-I256<br><code>…37142096</code></td><td><span class="chip type">Issue</span></td><td>Campo "Fecha de Estado" obligatorio en TRM de Catastro</td><td>Baja</td><td>alexis ramos</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>4</td><td>NA7-T642<br><code>…36826732</code></td><td><span class="chip type">Tarea</span></td><td>Optimizaciones consulta de adeudos / recibo / guardar pago</td><td><span class="chip warn">Alta</span></td><td>Dulce G. González (asignada)<br>validó: alexis ramos</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>5</td><td>NA7-I263<br><code>…37552236</code></td><td><span class="chip type">Issue</span></td><td><code>json_data</code> error en endpoint <code>crear_recibo_caja</code></td><td><span class="chip warn">Alta</span></td><td>alexis ramos (ops)<br>Haniel Rojo (datos)</td><td><span class="chip ok">Prod</span></td></tr>
+    <tr><td>6</td><td>—</td><td><span class="chip type">Plataforma</span></td><td>Actualización de la Fábrica de software: remover envío de errores por correo electrónico</td><td>—</td><td>Fábrica de software</td><td><span class="chip ok">Prod</span></td></tr>
+  </tbody>
+</table>
+
+<!-- DETALLE -->
+<h2 class="section">2. Detalle por elemento</h2>
+
+<div class="card">
+  <h3 class="item">1. Ajustar ventana de catastro: filtrado de predios activos (frontend)</h3>
+  <div class="metaline"><b>Tarea NA7-T643</b> · 106599000036858251 · Prioridad: Media · Responsable: Alejandro Leon · Revisor de desarrollo: Mario Alan Merel Tamayo</div>
+  <p>En la ventana de <b>Predios</b>, los filtros de consulta de cuentas prediales del padrón deben, por defecto, mostrar únicamente predios con estado global <b>1 Activo</b>, <b>2 En proceso</b> y <b>4 Autorizado</b>. Se agrega una opción para activar/desactivar el filtrado de solo cuentas activas (marcada como <b>Sí</b> por defecto):</p>
+  <ul>
+    <li>Si está activa: se omiten los predios con estado global <b>3 Inactivo</b> o <b>5 Cancelado</b>.</li>
+    <li>Si no está activa: se muestran todos los predios sin importar el estado global.</li>
+  </ul>
+  <p>Además, en la información general del predio se agrega el campo que muestra el estado global. Requiere el cambio de backend de la tarea <b>#2 (NA7-T650)</b> para operar. <b>PR:</b> <code>OPENSIR-FRONTEND/pull/1884</code>.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Victor Manuel Prieto Mercado</div>
+  <p><b>Validación:</b> el Revisor de operaciones verificó en QA que la cuenta cancelada <code>5200E5610009</code> ya no aparece en el grid con el filtro activo. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">2. Endpoint <code>/catastro/predios/</code> con filtro <code>estados_globales_filter</code> (backend)</h3>
+  <div class="metaline"><b>Tarea NA7-T650</b> · 106599000036969219 · Prioridad: Media · Responsable: Montserrat Alvarez · Revisor de desarrollo: paolo payan</div>
+  <p>Implementar en el endpoint <code>/catastro/predios/</code> el filtro <code>estados_globales_filter</code>, replicando el comportamiento existente en <code>recaudacion/tipos-de-cargo/</code>. El valor recibido es un string con los estados globales separados por comas y se usa para filtrar resultados (ej. <code>/catastro/predios/?estados_globales_filter=1,4,2</code>). Es la contraparte de backend de la tarea <b>#1 (NA7-T643)</b>. <b>PR:</b> <code>opensir/pull/4875</code>.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> Victor Manuel Prieto Mercado</div>
+  <p><b>Validación:</b> pruebas en Postman en ambiente de pruebas; el Revisor de operaciones validó el filtrado correcto en QA. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">3. Campo "Fecha de Estado" obligatorio en TRM de Catastro</h3>
+  <div class="metaline"><b>Issue NA7-I256</b> · 106599000037142096 · Severidad: Baja · Clasificación: Otros errores · Asignado: Alfredo Aragón</div>
+  <p>Actualmente el sistema permite guardar y modificar registros de los TRM de Catastro sin capturar la <b>Fecha de Estado</b>, lo que provoca inconsistencias en procesos posteriores. Se solicita configurar el campo como <b>obligatorio</b> tanto en el CRUD de captura como en el proceso de modificación, impidiendo guardar mientras el campo esté vacío y mostrando el mensaje de validación correspondiente.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> alexis ramos</div>
+  <p><b>Validación:</b> Mario Alan Merel Tamayo validó la obligatoriedad del campo; revisado en QA por el Revisor de operaciones. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">4. Optimizaciones consulta de adeudos / generar recibo / guardar pago</h3>
+  <div class="metaline"><b>Tarea NA7-T642</b> · 106599000036826732 · Prioridad: <span class="chip warn">Alta</span> · Responsable: Juan Pablo Campos · Revisor de desarrollo: paolo payan</div>
+  <p>Aplicar en NAVOJOA todas las optimizaciones realizadas en TLAJOMULCO para la <b>consulta del adeudo</b> y el <b>guardado del recibo</b>. Objetivo: mejorar el performance sin alterar el flujo funcional actual. <b>PR:</b> <code>opensir/pull/4900</code>.</p>
+  <div class="callout warn"><b>⚠ Cambio de performance sobre el flujo de pago.</b> Durante la revisión se reportó un posible error al pagar dos o más predios en conjunto; <b>no fue reproducible</b> en pruebas posteriores por Juan Pablo Campos (responsable) ni por alexis ramos (pagos individuales y conjuntos cobrados con éxito, recibos R-26-039591 a R-26-039614). Se recomienda verificar pagos (individuales y de múltiples predios) en producción tras el despliegue.</div>
+  <div class="reviewer"><b>Revisor de operaciones (asignado):</b> Dulce Guadalupe Gonzalez Barradas &nbsp;·&nbsp; <b>Validación ejecutada por:</b> alexis ramos</div>
+  <p><b>Validación:</b> Dulce Gonzalez, asignada como Revisor de operaciones, <b>coordinó la revisión pero no ejecutó las pruebas</b>: solicitó realizar pruebas de pago en línea/caja y marcar el elemento como listo para producción si todo resultaba correcto. La <b>validación funcional la ejecutó alexis ramos</b> (recibos R-26-039608 a R-26-039614 cobrados con éxito), con pruebas adicionales de Juan Pablo Campos. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">5. <code>json_data</code> error en endpoint <code>crear_recibo_caja</code></h3>
+  <div class="metaline"><b>Issue NA7-I263</b> · 106599000037552236 · Severidad: <span class="chip warn">Alta</span> · Clasificación: Otros errores · Asignado: Erick Villa · Revisor de desarrollo: paolo payan</div>
+  <p>Internal Server Error en <code>/recaudacion/recibos/</code> (<code>recaudacion/views/recibo.py</code>, línea 311) al crear un recibo en caja. <b>Causa:</b> no se definía la variable cuando el historial estaba vacío. El PR corrige la definición de dicha variable. <b>PR:</b> <code>opensir/pull/4909</code>.</p>
+  <div class="reviewer"><b>Revisor de operaciones:</b> alexis ramos &nbsp;·&nbsp; <b>Revisor de datos:</b> Haniel Rojo</div>
+  <p><b>Validación:</b> <b>alexis ramos</b> (Revisor de operaciones) generó y cobró recibos en caja correctamente (R-26-039617 a R-26-039626); <b>Haniel Rojo</b> (Revisor de datos) verificó que los registros quedaron correctamente guardados y <b>sin descuadres</b>. Listo para producción.</p>
+</div>
+
+<div class="card">
+  <h3 class="item">6. Actualización de plataforma — Fábrica de software</h3>
+  <div class="metaline"><b>Cambio de plataforma</b> · Sin ticket de Zoho · Responsable: Fábrica de software</div>
+  <p>Además de los elementos anteriores, esta liberación incluye una <b>actualización de la Fábrica de software</b> para <b>remover el envío de notificaciones de errores por correo electrónico</b>. Es un cambio a nivel de plataforma (no asociado a un Zoho) que se despliega junto con esta versión.</p>
+</div>
+
+<!-- DESPLIEGUE -->
+<h2 class="section">3. Consideraciones de despliegue</h2>
+
+<div class="avoid">
+<h3 class="item">3.1 Orden y dependencias entre elementos</h3>
+<div class="callout info">
+  <ul>
+    <li><b>Filtro de predios (Catastro):</b> desplegar <b>juntos</b> el backend <b>NA7-T650</b> (<code>opensir/pull/4875</code>) y el frontend <b>NA7-T643</b> (<code>OPENSIR-FRONTEND/pull/1884</code>). El frontend no filtra correctamente sin el endpoint de backend.</li>
+    <li><b>Recaudación / recibos:</b> <b>NA7-T642</b> (<code>opensir/pull/4900</code>) y <b>NA7-I263</b> (<code>opensir/pull/4909</code>) tocan el flujo de generación y guardado de recibos; conviene desplegarlos y validarlos en conjunto.</li>
+  </ul>
+</div>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.2 Migraciones de base de datos</h3>
+<div class="callout warn">No se identificaron migraciones declaradas en los comentarios de los elementos ni en los títulos de los PRs de esta liberación. <b>Verificar en cada PR (carpeta de migraciones) antes de desplegar</b>; no dar por hecho que no existen.</div>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.3 Actualización de plataforma (Fábrica de software)</h3>
+<div class="callout info">Junto con los elementos de Zoho se despliega una <b>actualización de la Fábrica de software</b> que <b>deshabilita el envío de notificaciones de errores por correo electrónico</b>. Confirmar que se aplique en el mismo despliegue.</div>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.4 Coordinación con terceros (SIMUN u otros)</h3>
+<p>No se identificaron dependencias con terceros para esta liberación.</p>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.5 Acciones operativas (post-despliegue)</h3>
+<ul>
+  <li>Validar en producción el flujo de <b>pago en caja / en línea</b> (individual y de múltiples predios) tras las optimizaciones de <b>NA7-T642</b>.</li>
+  <li>Verificar la creación de recibos en caja (fix de <b>NA7-I263</b>).</li>
+  <li>Confirmar que el filtro de predios activos oculta correctamente predios Inactivos/Cancelados y que se muestra el estado global del predio.</li>
+</ul>
+</div>
+
+<div class="avoid">
+<h3 class="item">3.6 Repositorios y PRs incluidos</h3>
+<table>
+  <thead><tr><th>PR</th><th>Repositorio</th><th>Elemento</th><th>Migraciones</th></tr></thead>
+  <tbody>
+    <tr><td>#1884</td><td>OPENSIR-FRONTEND</td><td>Filtro predios activos — frontend (NA7-T643)</td><td>Verificar</td></tr>
+    <tr><td>#4875</td><td>opensir</td><td>Endpoint <code>estados_globales_filter</code> — backend (NA7-T650)</td><td>Verificar</td></tr>
+    <tr><td>#4900</td><td>opensir</td><td>Optimizaciones adeudos / recibo / pago (NA7-T642)</td><td>Verificar</td></tr>
+    <tr><td>#4909</td><td>opensir</td><td>Fix <code>json_data</code> crear_recibo_caja (NA7-I263)</td><td>Verificar</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- CHECKLIST -->
+<h2 class="section">4. Checklist de liberación</h2>
+<ul class="checklist avoid">
+  <li>Desplegar PR #4875 (backend) y PR #1884 (frontend) juntos — filtro de predios</li>
+  <li>Desplegar PR #4900 (optimizaciones recaudación)</li>
+  <li>Desplegar PR #4909 (fix crear_recibo_caja)</li>
+  <li>Revisar cada PR por migraciones de BD antes del despliegue</li>
+  <li>Verificar filtrado de predios activos y campo de estado global en producción</li>
+  <li>Verificar pagos en caja/línea (individual y múltiples predios) tras optimizaciones (NA7-T642)</li>
+  <li>Verificar creación de recibos en caja (NA7-I263)</li>
+  <li>Verificar obligatoriedad del campo Fecha de Estado en TRM de Catastro (NA7-I256)</li>
+  <li>Aplicar la actualización de la Fábrica de software (remover envío de errores por correo electrónico)</li>
+  <li>Validación final por el Revisor de operaciones de cada elemento</li>
+</ul>
+
+<div class="foot">
+  Documento generado desde Zoho Projects el 22 de julio de 2026 · Versión Ver.260723.0531 · Portal sigobproyectos · Proyecto 106599000028329578 (NAVOJOA)<br>
+  Validación realizada por el Revisor de operaciones de cada elemento sobre el ambiente QA — verificar cada punto antes del despliegue en producción.
+</div>
+
+</div>
+</body>
+</html>
