@@ -152,7 +152,7 @@ async function sendTaskResilient(method, path, body) {
     const details = t?.error?.details;
     if (!Array.isArray(details)) break;
     const toStrip = details
-      .filter(d => /not available in the project/i.test(d.message || ""))
+      .filter(d => /not available (in|for) the project/i.test(d.message || ""))
       .map(d => d.field_name)
       .filter(f => f && f in body);
     if (!toStrip.length) break;
@@ -316,9 +316,15 @@ server.tool(
     if (person_responsible)          body.owners_and_work = { owners: [{ zpuid: toZpuid(person_responsible) }] };
     if (due_date)                    body.end_date = toISODate(due_date);
     if (completion_percentage != null) body.completion_percentage = completion_percentage;
-    if (tasklist_id)                 body.tasklist = { id: tasklist_id };
 
-    if (!Object.keys(body).length) return text("No se proporcionaron campos para actualizar.");
+    if (!Object.keys(body).length && !tasklist_id) return text("No se proporcionaron campos para actualizar.");
+
+    // El PATCH v3 ignora silenciosamente "tasklist"; mover de lista solo funciona por v2.
+    if (tasklist_id) {
+      const moved = await zohoClient.postFormV2(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}/`, { tasklist_id });
+      if (!moved?.tasks?.length) return text(`No se pudo mover la tarea de lista. Respuesta: ${JSON.stringify(moved)}`);
+      if (!Object.keys(body).length) return text(`Tarea movida a la lista ${tasklist_id}.\nID: ${task_id}`);
+    }
 
     const t = await zohoClient.patch(`/portal/${PORTAL}/projects/${project_id}/tasks/${task_id}`, body);
     if (t?.id) return text(`Tarea actualizada.\nID: ${t.id} | Nombre: ${t.name} | Estado: ${t.status?.name || "N/A"}`);
